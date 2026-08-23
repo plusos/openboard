@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -123,6 +124,15 @@ class EmojiSearchActivity : ComponentActivity() {
         init()
         setContent {
             LocalContext.current.setTheme(KeyboardTheme.getKeyboardTheme(this).mStyleId)
+            val isImeVisible = WindowInsets.isImeVisible
+            LaunchedEffect(isImeVisible) {
+                if (isImeVisible) {
+                    imeOpened = true
+                    Handler(Looper.getMainLooper()).removeCallbacks(closer)
+                } else if (imeOpened) {
+                    Handler(Looper.getMainLooper()).postDelayed(closer, 200)
+                }
+            }
             Surface(modifier = Modifier.fillMaxSize(), color = Color(0x80000000)) {
                 var heightDp by remember { mutableStateOf(0.dp) }
                 Column(
@@ -140,19 +150,6 @@ class EmojiSearchActivity : ComponentActivity() {
                             .background(Color(0xFF212121))
                             .clickable(false) {}
                             .onGloballyPositioned {
-                                val bottom = (it.positionInWindow().y + it.size.height).toInt()
-                                imeVisible = bottom < screenHeight - 100
-                                if (imeOpened && !imeVisible) {
-                                    Handler(Looper.getMainLooper()).postDelayed(closer, 200)
-                                }
-                                if (imeOpened && !isAlphaKeyboard()) {
-                                    cancel()
-                                    return@onGloballyPositioned
-                                }
-                                if (imeVisible && firstSearchDone && isAlphaKeyboard()) {
-                                    imeOpened = true
-                                    Handler(Looper.getMainLooper()).removeCallbacks(closer)
-                                }
                                 heightPx = it.size.height
                                 heightDp = with(localDensity) { it.size.height.toDp() }
                             }

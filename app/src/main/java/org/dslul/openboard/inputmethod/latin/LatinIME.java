@@ -1266,7 +1266,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
             outInsets.touchableRegion.set(touchLeft, touchTop, touchRight, touchBottom);
         }
         // Has to be subtracted after calculating touchableRegion
-        visibleTopY -= getEmojiSearchActivityHeight();
+        visibleTopY = Math.max(0, visibleTopY - getEmojiSearchActivityHeight());
         outInsets.contentTopInsets = visibleTopY;
         outInsets.visibleTopInsets = visibleTopY;
         mInsetsUpdater.setInsets(outInsets);
