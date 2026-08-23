@@ -35,5 +35,4 @@ Run commands within `nix develop` (or via direnv):
 
 # AGENTS.md
 
-- Update AGENTS.md with new workflows and tooling whenever changes are made.
-
+- Update AGENTS.md with new workflows and tooling whenever needed.
