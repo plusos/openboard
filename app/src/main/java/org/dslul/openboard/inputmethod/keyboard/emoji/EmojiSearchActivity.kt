@@ -39,6 +39,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -174,14 +175,19 @@ class EmojiSearchActivity : ComponentActivity() {
                                     .align(Alignment.CenterVertically)
                             )
                         }
-                        key(emojiPageKeyboardView) {
-                            AndroidView(
-                                factory = { emojiPageKeyboardView },
-                                modifier = Modifier
-                                    .wrapContentHeight()
-                                    .fillMaxWidth()
-                            )
-                        }
+                        var searchVersion by remember { mutableIntStateOf(0) }
+                        AndroidView(
+                            factory = { emojiPageKeyboardView },
+                            update = { view ->
+                                @Suppress("UNUSED_EXPRESSION")
+                                searchVersion
+                                view.invalidateAllKeys()
+                                view.requestLayout()
+                            },
+                            modifier = Modifier
+                                .wrapContentHeight()
+                                .fillMaxWidth()
+                        )
                         val focusRequester = remember { FocusRequester() }
                         val keyboardController = LocalSoftwareKeyboardController.current
                         var text by remember {
@@ -218,11 +224,14 @@ class EmojiSearchActivity : ComponentActivity() {
                             ),
                             onValueChange = {
                                 text = it
-                                search(it.text)
+                                search(it.text) {
+                                    searchVersion++
+                                }
                             },
                             enabled = true,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
+                                autoCorrect = false,
                                 imeAction = ImeAction.Done,
                                 platformImeOptions = PlatformImeOptions(
                                     encodePrivateImeOptions()
@@ -260,7 +269,9 @@ class EmojiSearchActivity : ComponentActivity() {
                                     if (text.text.isNotEmpty()) {
                                         IconButton(onClick = {
                                             text = TextFieldValue()
-                                            search("")
+                                            search("") {
+                                                searchVersion++
+                                            }
                                         }) {
                                             Icon(
                                                 painter = painterResource(R.drawable.ic_close),
@@ -370,20 +381,30 @@ class EmojiSearchActivity : ComponentActivity() {
         return !switcher.isShowingEmojiPalettes && !switcher.isShowingClipboardHistory
     }
 
-    private fun search(text: String) {
+    private fun search(text: String, onUpdated: () -> Unit = {}) {
         initDictionaryFacilitator(this, templateKeyboard.proximityInfo)
-        val facilitator = dictionaryFacilitator ?: return
-
-        if (firstSearchDone && text == currentSearchText) {
+        val facilitator = dictionaryFacilitator ?: run {
+            onUpdated()
             return
         }
 
-        val keyboard = emojiPageKeyboardView.keyboard as? DynamicGridKeyboard ?: return
+        if (firstSearchDone && text == currentSearchText) {
+            onUpdated()
+            return
+        }
+
+        val keyboard = emojiPageKeyboardView.keyboard as? DynamicGridKeyboard ?: run {
+            onUpdated()
+            return
+        }
         keyboard.removeAllKeys()
         firstKey = null
         pressedKey = null
 
-        val key0 = templateKey0 ?: return
+        val key0 = templateKey0 ?: run {
+            onUpdated()
+            return
+        }
         val keyWidth = key0.width + key0.horizontalGap
         val keyHeight = key0.height + key0.verticalGap
 
@@ -413,6 +434,7 @@ class EmojiSearchActivity : ComponentActivity() {
 
         currentSearchText = text
         firstSearchDone = true
+        onUpdated()
     }
 
     private fun cancel() {

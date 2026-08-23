@@ -81,8 +81,8 @@ public class RichInputMethodManager {
         sInstance.initInternal(context);
     }
 
-    private boolean isInitialized() {
-        return mImmWrapper != null;
+    public static boolean isInitialized() {
+        return sInstance != null && sInstance.mImmWrapper != null;
     }
 
     private void checkInitialized() {

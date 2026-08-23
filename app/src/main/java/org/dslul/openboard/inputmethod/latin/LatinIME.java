@@ -1055,10 +1055,15 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
         }
         if (isEmojiSearch()) {
             switcher.setAlphabetKeyboard();
+            if (mSuggestionStripView != null) {
+                mSuggestionStripView.updateVisibility(false, isFullscreenMode());
+            }
         }
         // This will set the punctuation suggestions if next word suggestion is off;
         // otherwise it will clear the suggestion strip.
-        setNeutralSuggestionStrip();
+        if (!isEmojiSearch()) {
+            setNeutralSuggestionStrip();
+        }
 
         mHandler.cancelUpdateSuggestionStrip();
 
@@ -1617,14 +1622,16 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
             return;
         }
 
+        final boolean isEmojiSearch = isEmojiSearch();
         final boolean shouldShowSuggestionCandidates =
-                currentSettingsValues.mInputAttributes.mShouldShowSuggestions
-                        && currentSettingsValues.isSuggestionsEnabledPerUserSettings();
-        final boolean shouldShowSuggestionsStripUnlessPassword = currentSettingsValues.mShowsVoiceInputKey
+                !isEmojiSearch
+                && currentSettingsValues.mInputAttributes.mShouldShowSuggestions
+                && currentSettingsValues.isSuggestionsEnabledPerUserSettings();
+        final boolean shouldShowSuggestionsStripUnlessPassword = !isEmojiSearch && (currentSettingsValues.mShowsVoiceInputKey
                 || currentSettingsValues.mShowsClipboardKey
                 || shouldShowSuggestionCandidates
-                || currentSettingsValues.isApplicationSpecifiedCompletionsOn();
-        final boolean shouldShowSuggestionsStrip = shouldShowSuggestionsStripUnlessPassword
+                || currentSettingsValues.isApplicationSpecifiedCompletionsOn());
+        final boolean shouldShowSuggestionsStrip = !isEmojiSearch && shouldShowSuggestionsStripUnlessPassword
                 && (!currentSettingsValues.mInputAttributes.mIsPasswordField || currentSettingsValues.mShowsClipboardKey);
         mSuggestionStripView.updateVisibility(shouldShowSuggestionsStrip, isFullscreenMode());
         if (!shouldShowSuggestionsStrip) {
@@ -1651,7 +1658,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
         }
     }
 
-    // TODO[IL]: Move this out of LatinIME.
+    // TODO: Move this method out of {@link LatinIME}.
     public void getSuggestedWords(final int inputStyle, final int sequenceNumber,
                                   final OnGetSuggestedWordsCallback callback) {
         final Keyboard keyboard = mKeyboardSwitcher.getKeyboard();
@@ -1691,6 +1698,12 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     // punctuation suggestions (if it's disabled).
     @Override
     public void setNeutralSuggestionStrip() {
+        if (isEmojiSearch()) {
+            if (mSuggestionStripView != null) {
+                mSuggestionStripView.updateVisibility(false, isFullscreenMode());
+            }
+            return;
+        }
         final SettingsValues currentSettings = mSettings.getCurrent();
         final SuggestedWords neutralSuggestions = currentSettings.mBigramPredictionEnabled
                 ? SuggestedWords.getEmptyInstance()
@@ -1732,7 +1745,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
                 break;
             default: // SHIFT_NO_UPDATE
         }
-        if (inputTransaction.requiresUpdateSuggestions()) {
+        if (inputTransaction.requiresUpdateSuggestions() && !isEmojiSearch()) {
             final int inputStyle;
             if (inputTransaction.getMEvent().isSuggestionStripPress()) {
                 // Suggestion strip press: no input.

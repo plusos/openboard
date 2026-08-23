@@ -103,17 +103,21 @@ public final class InputAttributes {
         final boolean flagAutoComplete =
                 0 != (inputType & InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE);
 
+        final boolean isEmojiSearch = org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.Companion.isEmojiSearch(editorInfo);
+
         // TODO: Have a helper method in InputTypeUtils
-        // Make sure that passwords are not displayed in {@link SuggestionStripView}.
-        mShouldShowSuggestions = !(mIsPasswordField || flagNoSuggestions);
+        // Make sure that passwords and emoji search are not displayed in {@link SuggestionStripView}.
+        mShouldShowSuggestions = !(mIsPasswordField || flagNoSuggestions || isEmojiSearch);
 
         mShouldInsertSpacesAutomatically = InputTypeUtils.isAutoSpaceFriendlyType(inputType);
 
+        final boolean hasShortcutIme = RichInputMethodManager.isInitialized()
+                && RichInputMethodManager.getInstance().hasShortcutIme();
         final boolean noMicrophone = mIsPasswordField
                 || InputTypeUtils.isEmailVariation(variation)
                 || InputType.TYPE_TEXT_VARIATION_URI == variation
                 || hasNoMicrophoneKeyOption()
-                || !RichInputMethodManager.getInstance().hasShortcutIme();
+                || !hasShortcutIme;
         mShouldShowVoiceInputKey = !noMicrophone;
 
         mDisableGestureFloatingPreviewText = InputAttributes.inPrivateImeOptions(
@@ -126,7 +130,8 @@ public final class InputAttributes {
         mInputTypeNoAutoCorrect =
                 (variation == InputType.TYPE_TEXT_VARIATION_WEB_EDIT_TEXT && !flagAutoCorrect)
                 || flagNoSuggestions
-                || (!flagAutoCorrect && !flagMultiLine);
+                || (!flagAutoCorrect && !flagMultiLine)
+                || isEmojiSearch;
 
         mApplicationSpecifiedCompletionOn = flagAutoComplete && isFullscreenMode;
 
