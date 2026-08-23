@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -98,7 +99,6 @@ import org.dslul.openboard.inputmethod.latin.utils.ResourceUtils
 private const val TAG = "EmojiSearchActivity"
 
 class EmojiSearchActivity : ComponentActivity() {
-    private var imeOpened = false
     private var firstSearchDone = false
     private var screenHeight: Int = 0
     private lateinit var hintLocales: LocaleList
@@ -107,16 +107,6 @@ class EmojiSearchActivity : ComponentActivity() {
     private var templateKey0: Key? = null
     private var firstKey: Key? = null
     private var pressedKey: Key? = null
-    private var imeVisible = false
-    private var imeClosed = false
-
-    private val closer = Runnable {
-        if (!imeVisible) {
-            Log.d(TAG, "IME closed")
-            imeClosed = true
-            cancel()
-        }
-    }
 
     @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -124,15 +114,7 @@ class EmojiSearchActivity : ComponentActivity() {
         init()
         setContent {
             LocalContext.current.setTheme(KeyboardTheme.getKeyboardTheme(this).mStyleId)
-            val isImeVisible = WindowInsets.isImeVisible
-            LaunchedEffect(isImeVisible) {
-                if (isImeVisible) {
-                    imeOpened = true
-                    Handler(Looper.getMainLooper()).removeCallbacks(closer)
-                } else if (imeOpened) {
-                    Handler(Looper.getMainLooper()).postDelayed(closer, 200)
-                }
-            }
+            BackHandler { cancel() }
             Surface(modifier = Modifier.fillMaxSize(), color = Color(0x80000000)) {
                 var heightDp by remember { mutableStateOf(0.dp) }
                 Column(
@@ -298,15 +280,12 @@ class EmojiSearchActivity : ComponentActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         init()
-        imeVisible = false
-        imeOpened = false
         firstSearchDone = false
         search(searchText)
     }
 
     override fun onStop() {
         val intent = Intent(this, LatinIME::class.java).setAction(EMOJI_SEARCH_DONE_ACTION)
-            .putExtra(IME_CLOSED_KEY, imeClosed)
         pressedKey?.let {
             val emojiText: String = (it.outputText ?: if (it.code > 0) Character.toString(it.code.toChar()) else "")
             if (emojiText.isNotEmpty()) {
@@ -369,10 +348,7 @@ class EmojiSearchActivity : ComponentActivity() {
 
     private fun search(text: String) {
         initDictionaryFacilitator(this)
-        val facilitator = dictionaryFacilitator ?: run {
-            cancel()
-            return
-        }
+        val facilitator = dictionaryFacilitator ?: return
 
         if (firstSearchDone && text == searchText) {
             return
@@ -416,9 +392,6 @@ class EmojiSearchActivity : ComponentActivity() {
 
         searchText = text
         firstSearchDone = true
-        if (imeVisible && !imeOpened) {
-            imeOpened = true
-        }
     }
 
     private fun cancel() {
