@@ -193,7 +193,7 @@ static void latinime_BinaryDictionary_getSuggestions(JNIEnv *env, jclass clazz, 
     ProximityInfo *pInfo = reinterpret_cast<ProximityInfo *>(proximityInfo);
     DicTraverseSession *traverseSession =
             reinterpret_cast<DicTraverseSession *>(dicTraverseSession);
-    if (!traverseSession) {
+    if (!traverseSession || !pInfo) {
         return;
     }
     // Input values
