@@ -892,7 +892,6 @@ public final class InputLogic {
             // have touch coordinates for it.
             resetComposingState(false /* alsoResetLastComposedWord */);
         }
-        enterInlineEmojiSearchIfNeeded(codePoint, settingsValues);
         if (isComposingWord) {
             mWordComposer.applyProcessedEvent(event);
             // If it's the first letter, make note of auto-caps state
@@ -2227,8 +2226,10 @@ public final class InputLogic {
                     + "Connection.commitText");
             startTimeMillis = System.currentTimeMillis();
         }
-        // Add the word to the user history dictionary
-        performAdditionToUserHistoryDictionary(settingsValues, chosenWord, ngramContext);
+        // Add the word to the user history dictionary if it is not an emoji
+        if (!org.dslul.openboard.inputmethod.latin.common.EmojiKt.isEmoji(chosenWord)) {
+            performAdditionToUserHistoryDictionary(settingsValues, chosenWord, ngramContext);
+        }
         if (DebugFlags.DEBUG_ENABLED) {
             long runTimeMillis = System.currentTimeMillis() - startTimeMillis;
             Log.d(TAG, "commitChosenWord() : " + runTimeMillis + " ms to run "
@@ -2395,17 +2396,6 @@ public final class InputLogic {
         return mWordComposer.size();
     }
 
-    private void enterInlineEmojiSearchIfNeeded(int codePoint, SettingsValues settingsValues) {
-        if (mEmojiDictionaryFacilitator == null) {
-            return;
-        }
-
-        if (isStartOfInlineEmojiSearch(codePoint, mConnection.getCodePointBeforeCursor(),
-                mConnection.getCharBeforeBeforeCursor(), settingsValues)) {
-            // Entered inline search
-        }
-    }
-
     private void searchForEmojiInline(int sequenceNumber, OnGetSuggestedWordsCallback callback) {
         final String input = getInlineEmojiSearchString();
         if (StringUtils.isEmpty(input)) {
@@ -2449,10 +2439,14 @@ public final class InputLogic {
         }
 
         final CharSequence textBeforeCursor = mConnection.getTextBeforeCursor(50, 0);
-        return getInlineEmojiSearchString(textBeforeCursor);
+        return getInlineEmojiSearchString(textBeforeCursor, Settings.getInstance().getCurrent());
     }
 
     public static String getInlineEmojiSearchString(final CharSequence textBeforeCursor) {
+        return getInlineEmojiSearchString(textBeforeCursor, null);
+    }
+
+    public static String getInlineEmojiSearchString(final CharSequence textBeforeCursor, final SettingsValues settingsValues) {
         if (textBeforeCursor == null) {
             return null;
         }
@@ -2463,8 +2457,8 @@ public final class InputLogic {
             return null;
         }
 
-        if (markerIndex > 0 && !isValidInlineEmojiSearchPreviousChar(text.codePointAt(markerIndex - 1),
-                Settings.getInstance().getCurrent())) {
+        if (markerIndex > 0 && !isValidInlineEmojiSearchPreviousChar(Character.codePointBefore(text, markerIndex),
+                settingsValues)) {
             return null;
         }
 
@@ -2486,7 +2480,10 @@ public final class InputLogic {
     }
 
     private static boolean isValidInlineEmojiSearchPreviousChar(final int charBeforeBeforeCursor, final SettingsValues settingsValues) {
-        return !Character.isDigit(charBeforeBeforeCursor) && !settingsValues.isWordCodePoint(charBeforeBeforeCursor);
+        if (Character.isDigit(charBeforeBeforeCursor) || Character.isLetter(charBeforeBeforeCursor)) {
+            return false;
+        }
+        return settingsValues == null || !settingsValues.isWordCodePoint(charBeforeBeforeCursor);
     }
 
     public void updateEmojiDictionary(final Locale locale) {
