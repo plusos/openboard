@@ -85,6 +85,7 @@ public final class EmojiPalettesView extends LinearLayout
     private final LinearLayoutManager mEmojiLayoutManager;
 
     private ImageButton mDeleteKey;
+    private ImageButton mSearchKey;
     private TextView mAlphabetKeyLeft;
     private View mSpacebar;
     // TODO: Remove this workaround.
@@ -245,6 +246,14 @@ public final class EmojiPalettesView extends LinearLayout
         mDeleteKey.setTag(Constants.CODE_DELETE);
         mDeleteKey.setOnTouchListener(mDeleteKeyOnTouchListener);
 
+        mSearchKey = findViewById(R.id.emoji_keyboard_search);
+        if (mSearchKey != null) {
+            mSearchKey.setBackgroundResource(mFunctionalKeyBackgroundId);
+            mSearchKey.setTag(Constants.CODE_EMOJI_SEARCH);
+            mSearchKey.setOnTouchListener(this);
+            mSearchKey.setOnClickListener(this);
+        }
+
         // {@link #mAlphabetKeyLeft} and spaceKey depend on
         // {@link View.OnClickListener} as well as {@link View.OnTouchListener}.
         // {@link View.OnTouchListener} is used as the trigger of key-press, while
@@ -378,6 +387,12 @@ public final class EmojiPalettesView extends LinearLayout
         if (deleteIconResId != 0) {
             mDeleteKey.setImageResource(deleteIconResId);
         }
+        if (mSearchKey != null) {
+            final int searchIconResId = iconSet.getIconResourceId(KeyboardIconsSet.NAME_SEARCH_KEY);
+            if (searchIconResId != 0) {
+                mSearchKey.setImageResource(searchIconResId);
+            }
+        }
         final int spacebarResId = iconSet.getIconResourceId(KeyboardIconsSet.NAME_SPACE_KEY);
         if (spacebarResId != 0) {
             // TODO: Remove this workaround to place the spacebar icon.
@@ -390,6 +405,12 @@ public final class EmojiPalettesView extends LinearLayout
             mEmojiRecyclerView.setAdapter(mEmojiPalettesAdapter);
             setCurrentCategoryAndPageId(mEmojiCategory.getCurrentCategoryId(), mEmojiCategory.getCurrentCategoryPageId(),
                     true /* force */);
+        }
+    }
+
+    public void addRecentKey(final Key key) {
+        if (mEmojiPalettesAdapter != null) {
+            mEmojiPalettesAdapter.addRecentKey(key);
         }
     }
 

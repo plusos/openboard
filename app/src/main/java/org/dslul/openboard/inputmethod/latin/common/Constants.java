@@ -250,6 +250,8 @@ public final class Constants {
     public static final int CODE_START_ONE_HANDED_MODE = -17;
     public static final int CODE_STOP_ONE_HANDED_MODE = -18;
     public static final int CODE_SWITCH_ONE_HANDED_MODE = -19;
+    public static final int CODE_EMOJI_SEARCH = -21;
+    public static final int CODE_INLINE_EMOJI_SEARCH_DONE = -22;
     // Code value representing the code is not specified.
     public static final int CODE_UNSPECIFIED = -20;
 
@@ -275,6 +277,8 @@ public final class Constants {
         case CODE_SHIFT_ENTER: return "shiftEnter";
         case CODE_ALPHA_FROM_EMOJI: return "alpha";
         case CODE_ALPHA_FROM_CLIPBOARD: return "alpha";
+        case CODE_EMOJI_SEARCH: return "emojiSearch";
+        case CODE_INLINE_EMOJI_SEARCH_DONE: return "inlineEmojiSearchDone";
         case CODE_UNSPECIFIED: return "unspec";
         case CODE_TAB: return "tab";
         case CODE_ENTER: return "enter";

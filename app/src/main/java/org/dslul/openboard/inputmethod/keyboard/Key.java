@@ -66,10 +66,10 @@ public class Key implements Comparable<Key> {
     private static final int LABEL_FLAGS_ALIGN_ICON_TO_BOTTOM = 0x04;
     private static final int LABEL_FLAGS_ALIGN_LABEL_OFF_CENTER = 0x08;
     // Font typeface specification.
-    private static final int LABEL_FLAGS_FONT_MASK = 0x30;
-    private static final int LABEL_FLAGS_FONT_NORMAL = 0x10;
-    private static final int LABEL_FLAGS_FONT_MONO_SPACE = 0x20;
-    private static final int LABEL_FLAGS_FONT_DEFAULT = 0x30;
+    public static final int LABEL_FLAGS_FONT_MASK = 0x30;
+    public static final int LABEL_FLAGS_FONT_NORMAL = 0x10;
+    public static final int LABEL_FLAGS_FONT_MONO_SPACE = 0x20;
+    public static final int LABEL_FLAGS_FONT_DEFAULT = 0x30;
     // Start of key text ratio enum values
     private static final int LABEL_FLAGS_FOLLOW_KEY_TEXT_RATIO_MASK = 0x1C0;
     private static final int LABEL_FLAGS_FOLLOW_KEY_LARGE_LETTER_RATIO = 0x40;

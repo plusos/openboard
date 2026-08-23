@@ -192,6 +192,10 @@ public final class KeyboardSwitcher implements KeyboardState.SwitchActions {
         return null;
     }
 
+    public org.dslul.openboard.inputmethod.keyboard.emoji.EmojiPalettesView getEmojiPalettesView() {
+        return mEmojiPalettesView;
+    }
+
     // TODO: Remove this method. Come up with a more comprehensive way to reset the keyboard layout
     // when a keyboard layout set doesn't get reloaded in LatinIME.onStartInputViewInternal().
     public void resetKeyboardStateToAlphabet(final int currentAutoCapsState,

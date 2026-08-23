@@ -52,14 +52,24 @@ final class DynamicGridKeyboard extends Keyboard {
     private final boolean mIsRecents;
     private final ArrayDeque<GridKey> mGridKeys = new ArrayDeque<>();
     private final ArrayDeque<Key> mPendingKeys = new ArrayDeque<>();
+    private List<Key> mCachedGridKeys = null;
 
-    private List<Key> mCachedGridKeys;
+    public static DynamicGridKeyboard ofRowCount(final SharedPreferences prefs, final Keyboard templateKeyboard,
+            final int maxRowCount, final boolean isRecents, final int width) {
+        final Key key0 = getTemplateKey(templateKeyboard, TEMPLATE_KEY_CODE_0);
+        final Key key1 = getTemplateKey(templateKeyboard, TEMPLATE_KEY_CODE_1);
+        final int horizontalGap = Math.abs(key1.getX() - key0.getX()) - key0.getWidth();
+        final int horizontalStep = key0.getWidth() + horizontalGap;
+        final int columnsNum = Math.max(1, width / horizontalStep);
+        final int maxKeyCount = maxRowCount * columnsNum;
+        return new DynamicGridKeyboard(prefs, templateKeyboard, maxKeyCount, isRecents ? EmojiCategory.ID_RECENTS : -1);
+    }
 
     public DynamicGridKeyboard(final SharedPreferences prefs, final Keyboard templateKeyboard,
             final int maxKeyCount, final int categoryId) {
         super(templateKeyboard);
-        final Key key0 = getTemplateKey(TEMPLATE_KEY_CODE_0);
-        final Key key1 = getTemplateKey(TEMPLATE_KEY_CODE_1);
+        final Key key0 = getTemplateKey(this, TEMPLATE_KEY_CODE_0);
+        final Key key1 = getTemplateKey(this, TEMPLATE_KEY_CODE_1);
         mHorizontalGap = Math.abs(key1.getX() - key0.getX()) - key0.getWidth();
         mHorizontalStep = key0.getWidth() + mHorizontalGap;
         mVerticalStep = key0.getHeight() + mVerticalGap;
@@ -69,13 +79,20 @@ final class DynamicGridKeyboard extends Keyboard {
         mPrefs = prefs;
     }
 
-    private Key getTemplateKey(final int code) {
-        for (final Key key : super.getSortedKeys()) {
+    private static Key getTemplateKey(final Keyboard keyboard, final int code) {
+        for (final Key key : keyboard.getSortedKeys()) {
             if (key.getCode() == code) {
                 return key;
             }
         }
         throw new RuntimeException("Can't find template key: code=" + code);
+    }
+
+    public void removeAllKeys() {
+        synchronized (mLock) {
+            mCachedGridKeys = null;
+            mGridKeys.clear();
+        }
     }
 
     public int getDynamicOccupiedHeight() {
