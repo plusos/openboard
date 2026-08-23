@@ -261,7 +261,15 @@ class EmojiSearchActivity : ComponentActivity() {
                                 interactionSource = remember { MutableInteractionSource() }
                             )
                         }
+                        val windowInfo = LocalWindowInfo.current
+                        LaunchedEffect(windowInfo.isWindowFocused) {
+                            if (windowInfo.isWindowFocused) {
+                                focusRequester.requestFocus()
+                                keyboardController?.show()
+                            }
+                        }
                         LaunchedEffect(Unit) {
+                            kotlinx.coroutines.delay(100)
                             focusRequester.requestFocus()
                             keyboardController?.show()
                         }
