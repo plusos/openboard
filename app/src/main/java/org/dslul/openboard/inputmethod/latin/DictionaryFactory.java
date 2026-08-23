@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.util.Log;
 
+import org.dslul.openboard.inputmethod.latin.makedict.DictionaryHeader;
 import org.dslul.openboard.inputmethod.latin.utils.DictionaryInfoUtils;
 
 import java.io.File;
@@ -157,5 +158,29 @@ public final class DictionaryFactory {
                 }
             }
         }
+    }
+
+    public static Dictionary getDictionary(final File file, final Locale locale) {
+        if (file == null || !file.isFile()) {
+            return null;
+        }
+        final DictionaryHeader header;
+        try {
+            header = org.dslul.openboard.inputmethod.latin.utils.BinaryDictionaryUtils.getHeader(file);
+        } catch (org.dslul.openboard.inputmethod.latin.makedict.UnsupportedFormatException | java.io.IOException e) {
+            return null;
+        }
+        if (header == null) {
+            return null;
+        }
+        final String dictType = header.mIdString.split(":")[0];
+        final ReadOnlyBinaryDictionary readOnlyBinaryDictionary = new ReadOnlyBinaryDictionary(
+                file.getAbsolutePath(), 0, file.length(), false, locale, dictType
+        );
+        if (readOnlyBinaryDictionary.isValidDictionary()) {
+            return readOnlyBinaryDictionary;
+        }
+        readOnlyBinaryDictionary.close();
+        return null;
     }
 }

@@ -27,6 +27,7 @@ import android.view.inputmethod.InputMethodSubtype;
 import org.dslul.openboard.inputmethod.annotations.UsedForTesting;
 import org.dslul.openboard.inputmethod.latin.AssetFileAddress;
 import org.dslul.openboard.inputmethod.latin.BinaryDictionaryGetter;
+import org.dslul.openboard.inputmethod.latin.Dictionary;
 import org.dslul.openboard.inputmethod.latin.R;
 import org.dslul.openboard.inputmethod.latin.RichInputMethodManager;
 import org.dslul.openboard.inputmethod.latin.common.LocaleUtils;
@@ -237,6 +238,69 @@ public class DictionaryInfoUtils {
             }
         }
         return absoluteDirectoryName;
+    }
+
+    public static File[] getCachedDictsForLocale(final Locale locale, final Context context) {
+        final String dirPath = getCacheDirectoryForLocale(locale.toString(), context);
+        if (dirPath == null) return new File[0];
+        final File[] files = new File(dirPath).listFiles();
+        return files != null ? files : new File[0];
+    }
+
+    public static File extractAssetsDictionary(final String fileName, final Locale locale, final Context context) {
+        final String cacheDir = getCacheDirectoryForLocale(locale.toString(), context);
+        if (cacheDir == null) return null;
+        final File outFile = new File(cacheDir, fileName);
+        if (outFile.exists() && outFile.length() > 0) {
+            return outFile;
+        }
+        try (java.io.InputStream in = context.getAssets().open("dicts/" + fileName);
+             java.io.FileOutputStream out = new java.io.FileOutputStream(outFile)) {
+            final byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            return outFile;
+        } catch (java.io.IOException e) {
+            return null;
+        }
+    }
+
+    public static File getCachedDictForLocaleAndType(final Locale locale, final String type, final Context context) {
+        if (locale != null) {
+            final File[] cachedDicts = getCachedDictsForLocale(locale, context);
+            for (final File f : cachedDicts) {
+                if (f.getName().startsWith(type + "_") || f.getName().equals(type + ".dict")) {
+                    return f;
+                }
+            }
+            final String lang = locale.getLanguage();
+            final File extracted = extractAssetsDictionary(type + "_" + lang + ".dict", locale, context);
+            if (extracted != null) {
+                return extracted;
+            }
+        }
+        return extractAssetsDictionary(type + "_en.dict", Locale.ENGLISH, context);
+    }
+
+    public static List<Locale> getLocalesWithEmojiDicts(final Context context) {
+        final List<Locale> locales = new ArrayList<>();
+        RichInputMethodManager.init(context);
+        final List<InputMethodSubtype> enabledSubtypes = RichInputMethodManager
+                .getInstance().getMyEnabledInputMethodSubtypeList(true);
+        for (final InputMethodSubtype subtype : enabledSubtypes) {
+            final Locale locale = LocaleUtils.constructLocaleFromString(subtype.getLocale());
+            if (getCachedDictForLocaleAndType(locale, Dictionary.TYPE_EMOJI, context) != null) {
+                if (!locales.contains(locale)) {
+                    locales.add(locale);
+                }
+            }
+        }
+        if (locales.isEmpty()) {
+            locales.add(Locale.ENGLISH);
+        }
+        return locales;
     }
 
     public static boolean isMainWordListId(final String id) {

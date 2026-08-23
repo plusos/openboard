@@ -364,6 +364,15 @@ public class SuggestedWords {
             return mWord;
         }
 
+        private Boolean mIsEmoji = null;
+
+        public boolean isEmoji() {
+            if (mIsEmoji == null) {
+                mIsEmoji = org.dslul.openboard.inputmethod.latin.common.EmojiKt.isEmoji(mWord);
+            }
+            return mIsEmoji;
+        }
+
         @Deprecated
         public Dictionary getSourceDictionary() {
             return mSourceDict;

@@ -116,6 +116,19 @@ public final class ReadOnlyBinaryDictionary extends Dictionary {
     }
 
     @Override
+    public org.dslul.openboard.inputmethod.latin.makedict.WordProperty getWordProperty(
+            final String word, final boolean isBeginningOfSentence) {
+        if (mLock.readLock().tryLock()) {
+            try {
+                return mBinaryDictionary.getWordProperty(word, isBeginningOfSentence);
+            } finally {
+                mLock.readLock().unlock();
+            }
+        }
+        return null;
+    }
+
+    @Override
     public void close() {
         mLock.writeLock().lock();
         try {

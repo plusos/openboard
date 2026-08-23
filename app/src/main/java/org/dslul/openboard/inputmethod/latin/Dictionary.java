@@ -55,17 +55,21 @@ public abstract class Dictionary {
     public static final String TYPE_RESUMED = "resumed";
     public static final PhonyDictionary DICTIONARY_RESUMED = new PhonyDictionary(TYPE_RESUMED);
 
-    // The following types of dictionary have actual functional instances. We don't need final
-    // phony dictionary instances for them.
     public static final String TYPE_MAIN = "main";
     public static final String TYPE_CONTACTS = "contacts";
     // User dictionary, the system-managed one.
     public static final String TYPE_USER = "user";
     // User history dictionary internal to LatinIME.
     public static final String TYPE_USER_HISTORY = "history";
+    public static final String TYPE_EMOJI = "emoji";
     public final String mDictType;
     // The locale for this dictionary. May be null if unknown (phony dictionary for example).
     public final Locale mLocale;
+
+    public org.dslul.openboard.inputmethod.latin.makedict.WordProperty getWordProperty(
+            final String word, final boolean isBeginningOfSentence) {
+        return null;
+    }
 
     /**
      * Set out of the dictionary types listed above that are based on data specific to the user,
