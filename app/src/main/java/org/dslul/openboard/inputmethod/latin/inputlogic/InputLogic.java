@@ -2493,7 +2493,11 @@ public final class InputLogic {
                 closeEmojiDictionary();
                 final File dictFile = DictionaryInfoUtils.getCachedDictForLocaleAndType(locale, Dictionary.TYPE_EMOJI, mLatinIME);
                 final Dictionary dictionary = dictFile != null ? DictionaryFactory.getDictionary(dictFile, locale) : null;
-                mEmojiDictionaryFacilitator = dictionary != null ? new SingleDictionaryFacilitator(dictionary) : null;
+                final org.dslul.openboard.inputmethod.keyboard.ProximityInfo proximityInfo =
+                        KeyboardSwitcher.getInstance().getKeyboard() != null
+                                ? KeyboardSwitcher.getInstance().getKeyboard().getProximityInfo()
+                                : null;
+                mEmojiDictionaryFacilitator = dictionary != null ? new SingleDictionaryFacilitator(dictionary, proximityInfo) : null;
             }
         } else {
             closeEmojiDictionary();

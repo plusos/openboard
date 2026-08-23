@@ -72,6 +72,7 @@ import org.dslul.openboard.inputmethod.keyboard.KeyboardId
 import org.dslul.openboard.inputmethod.keyboard.KeyboardLayoutSet
 import org.dslul.openboard.inputmethod.keyboard.KeyboardSwitcher
 import org.dslul.openboard.inputmethod.keyboard.KeyboardTheme
+import org.dslul.openboard.inputmethod.keyboard.ProximityInfo
 import org.dslul.openboard.inputmethod.keyboard.internal.KeyboardIconsSet
 import org.dslul.openboard.inputmethod.latin.Dictionary
 import org.dslul.openboard.inputmethod.latin.DictionaryFactory
@@ -370,7 +371,7 @@ class EmojiSearchActivity : ComponentActivity() {
     }
 
     private fun search(text: String) {
-        initDictionaryFacilitator(this)
+        initDictionaryFacilitator(this, templateKeyboard.proximityInfo)
         val facilitator = dictionaryFacilitator ?: return
 
         if (firstSearchDone && text == currentSearchText) {
@@ -434,14 +435,14 @@ class EmojiSearchActivity : ComponentActivity() {
 
         private fun encodePrivateImeOptions() = "$PRIVATE_IME_OPTIONS_PREFIX,"
 
-        private fun initDictionaryFacilitator(context: Context) {
+        private fun initDictionaryFacilitator(context: Context, proximityInfo: ProximityInfo? = null) {
             RichInputMethodManager.init(context)
             val locale = RichInputMethodManager.getInstance().currentSubtypeLocale
             if (dictionaryFacilitator?.isForLocale(locale) != true) {
                 dictionaryFacilitator?.closeDictionaries()
                 val dictFile = DictionaryInfoUtils.getCachedDictForLocaleAndType(locale, Dictionary.TYPE_EMOJI, context)
                 val dict = if (dictFile != null) DictionaryFactory.getDictionary(dictFile, locale) else null
-                dictionaryFacilitator = if (dict != null) SingleDictionaryFacilitator(dict) else null
+                dictionaryFacilitator = if (dict != null) SingleDictionaryFacilitator(dict, proximityInfo) else null
             }
         }
     }

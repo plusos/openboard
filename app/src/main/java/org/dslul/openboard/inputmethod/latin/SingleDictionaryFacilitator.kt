@@ -4,6 +4,7 @@ package org.dslul.openboard.inputmethod.latin
 import android.content.Context
 import android.util.LruCache
 import org.dslul.openboard.inputmethod.keyboard.Keyboard
+import org.dslul.openboard.inputmethod.keyboard.ProximityInfo
 import org.dslul.openboard.inputmethod.latin.common.ComposedData
 import org.dslul.openboard.inputmethod.latin.common.InputPointers
 import org.dslul.openboard.inputmethod.latin.settings.SettingsValuesForSuggestion
@@ -16,7 +17,29 @@ import java.util.HashMap
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-class SingleDictionaryFacilitator(private val dict: Dictionary) : DictionaryFacilitator {
+class SingleDictionaryFacilitator(
+    private val dict: Dictionary,
+    private var proximityInfo: ProximityInfo? = null
+) : DictionaryFacilitator {
+    private val dummyProximityInfo by lazy {
+        try {
+            ProximityInfo.createDummyProximityInfo()
+        } catch (t: Throwable) {
+            null
+        }
+    }
+
+    private fun getProximityInfoHandle(keyboard: Keyboard? = null): Long {
+        if (keyboard?.proximityInfo != null) {
+            val handle = keyboard.proximityInfo.nativeProximityInfo
+            if (handle != 0L) return handle
+        }
+        if (proximityInfo != null && proximityInfo!!.nativeProximityInfo != 0L) {
+            return proximityInfo!!.nativeProximityInfo
+        }
+        return dummyProximityInfo?.nativeProximityInfo ?: 0L
+    }
+
     private fun createInputPointers(word: String): InputPointers {
         val length = word.codePointCount(0, word.length)
         val capacity = Math.max(DecoderSpecificConstants.DICTIONARY_MAX_WORD_LENGTH, length)
@@ -32,10 +55,11 @@ class SingleDictionaryFacilitator(private val dict: Dictionary) : DictionaryFaci
         val composedData = ComposedData(createInputPointers(word), false, word)
         val ngramContext = NgramContext.BEGINNING_OF_SENTENCE
         val settings = SettingsValuesForSuggestion(false)
+        val proximityInfoHandle = getProximityInfoHandle()
         val initialResults = dict.getSuggestions(
             composedData,
             ngramContext,
-            0L,
+            proximityInfoHandle,
             settings,
             1,
             1.0f,
@@ -53,7 +77,7 @@ class SingleDictionaryFacilitator(private val dict: Dictionary) : DictionaryFaci
             val nextResults = dict.getSuggestions(
                 nextComposedData,
                 ngramContext,
-                0L,
+                proximityInfoHandle,
                 settings,
                 1,
                 1.0f,
@@ -130,6 +154,7 @@ class SingleDictionaryFacilitator(private val dict: Dictionary) : DictionaryFaci
 
     override fun closeDictionaries() {
         dict.close()
+        proximityInfo = null
     }
 
     override fun getSubDictForTesting(dictName: String?): ExpandableBinaryDictionary? = null
@@ -164,10 +189,11 @@ class SingleDictionaryFacilitator(private val dict: Dictionary) : DictionaryFaci
         val suggestionResults = SuggestionResults(100, false, false)
         if (composedData == null) return suggestionResults
         val settings = settingsValuesForSuggestion ?: SettingsValuesForSuggestion(false)
+        val proximityInfoHandle = getProximityInfoHandle(keyboard)
         val results = dict.getSuggestions(
             composedData,
             ngramContext ?: NgramContext.BEGINNING_OF_SENTENCE,
-            0L,
+            proximityInfoHandle,
             settings,
             sessionId,
             1.0f,

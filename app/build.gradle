@@ -41,6 +41,10 @@ android {
         abortOnError false
     }
 
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
     buildFeatures {
         compose true
     }

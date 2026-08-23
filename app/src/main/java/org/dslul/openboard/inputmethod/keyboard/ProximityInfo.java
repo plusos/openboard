@@ -19,6 +19,7 @@ package org.dslul.openboard.inputmethod.keyboard;
 import android.graphics.Rect;
 import android.util.Log;
 
+import org.dslul.openboard.inputmethod.keyboard.internal.KeyboardIconsSet;
 import org.dslul.openboard.inputmethod.keyboard.internal.TouchPositionCorrection;
 import org.dslul.openboard.inputmethod.latin.common.Constants;
 import org.dslul.openboard.inputmethod.latin.utils.JniUtils;
@@ -33,6 +34,19 @@ import javax.annotation.Nonnull;
 public class ProximityInfo {
     private static final String TAG = ProximityInfo.class.getSimpleName();
     private static final boolean DEBUG = false;
+
+    public static ProximityInfo createDummyProximityInfo() {
+        try {
+            final Key dummyKey = new Key(null, KeyboardIconsSet.ICON_UNDEFINED, Constants.CODE_SPACE,
+                    null, null, Key.LABEL_FLAGS_FONT_NORMAL, Key.BACKGROUND_TYPE_EMPTY,
+                    0, 0, 100, 100, 0, 0);
+            final List<Key> keys = Collections.singletonList(dummyKey);
+            return new ProximityInfo(1, 1, 100, 100, 100, 100, keys,
+                    new TouchPositionCorrection());
+        } catch (Throwable t) {
+            return null;
+        }
+    }
 
     // Must be equal to MAX_PROXIMITY_CHARS_SIZE in native/jni/src/defines.h
     public static final int MAX_PROXIMITY_CHARS_SIZE = 16;
@@ -78,12 +92,19 @@ public class ProximityInfo {
             return;
         }
         computeNearestNeighbors();
-        mNativeProximityInfo = createNativeProximityInfo(touchPositionCorrection);
+        try {
+            mNativeProximityInfo = createNativeProximityInfo(touchPositionCorrection);
+        } catch (UnsatisfiedLinkError e) {
+            mNativeProximityInfo = 0;
+        }
     }
 
     private long mNativeProximityInfo;
     static {
-        JniUtils.loadNativeLibrary();
+        try {
+            JniUtils.loadNativeLibrary();
+        } catch (Throwable ignored) {
+        }
     }
 
     // TODO: Stop passing proximityCharsArray

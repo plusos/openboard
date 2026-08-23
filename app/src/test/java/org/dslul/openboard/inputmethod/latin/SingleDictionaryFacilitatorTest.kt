@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.dslul.openboard.inputmethod.latin
 
+import org.dslul.openboard.inputmethod.keyboard.ProximityInfo
 import org.dslul.openboard.inputmethod.latin.SuggestedWords.SuggestedWordInfo
 import org.dslul.openboard.inputmethod.latin.common.ComposedData
 import org.dslul.openboard.inputmethod.latin.common.Constants
@@ -18,6 +19,7 @@ class SingleDictionaryFacilitatorTest {
         Dictionary(TYPE_EMOJI, Locale.ENGLISH) {
 
         var lastComposedData: ComposedData? = null
+        var lastProximityInfoHandle: Long = -1L
 
         override fun getSuggestions(
             composedData: ComposedData,
@@ -29,6 +31,7 @@ class SingleDictionaryFacilitatorTest {
             inOutWeightOfLangModelVsSpatialModel: FloatArray?
         ): ArrayList<SuggestedWordInfo>? {
             lastComposedData = composedData
+            lastProximityInfoHandle = proximityInfoHandle
             val word = composedData.mTypedWord
             val results = suggestionsMap[word] ?: return ArrayList()
             return ArrayList(results)
@@ -124,5 +127,15 @@ class SingleDictionaryFacilitatorTest {
         assertEquals("😹", results.first().mWord)
         // Score should be sum of 60 + 50 = 110
         assertEquals(110, results.first().mScore)
+    }
+
+    @Test
+    fun testProximityInfoHandlePropagation() {
+        val fakeDict = FakeDictionary(emptyMap())
+        val dummy = ProximityInfo.createDummyProximityInfo()
+        val facilitator = SingleDictionaryFacilitator(fakeDict, dummy)
+        facilitator.getSuggestions(listOf("smile"))
+
+        assertEquals(dummy?.nativeProximityInfo ?: 0L, fakeDict.lastProximityInfoHandle)
     }
 }
