@@ -10,3 +10,6 @@ app/release
 app/.cxx
 fastlane/Appfile
 .direnv
+
+# reference
+/HeliBoard
