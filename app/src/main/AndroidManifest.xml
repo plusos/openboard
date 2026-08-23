@@ -111,7 +111,7 @@
         </activity>
 
         <activity android:name="org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity" android:exported="false"
-            android:theme="@style/TransparentActivityTheme" android:excludeFromRecents="true"
+            android:theme="@style/TransparentActivityTheme" android:taskAffinity="" android:excludeFromRecents="true"
             android:windowSoftInputMode="adjustResize|stateAlwaysVisible" android:configChanges="orientation|screenSize"/>
 
         <activity android:name=".spellcheck.SpellCheckerSettingsActivity"
