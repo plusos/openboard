@@ -8,6 +8,8 @@ import org.dslul.openboard.inputmethod.latin.common.ComposedData
 import org.dslul.openboard.inputmethod.latin.common.InputPointers
 import org.dslul.openboard.inputmethod.latin.settings.SettingsValuesForSuggestion
 import org.dslul.openboard.inputmethod.latin.utils.SuggestionResults
+import org.dslul.openboard.inputmethod.latin.common.Constants
+import org.dslul.openboard.inputmethod.latin.define.DecoderSpecificConstants
 import java.io.File
 import java.util.ArrayList
 import java.util.HashMap
@@ -15,9 +17,19 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class SingleDictionaryFacilitator(private val dict: Dictionary) : DictionaryFacilitator {
+    private fun createInputPointers(word: String): InputPointers {
+        val length = word.codePointCount(0, word.length)
+        val capacity = Math.max(DecoderSpecificConstants.DICTIONARY_MAX_WORD_LENGTH, length)
+        val inputPointers = InputPointers(capacity)
+        for (i in 0 until length) {
+            inputPointers.addPointerAt(i, Constants.NOT_A_COORDINATE, Constants.NOT_A_COORDINATE, 0, 0)
+        }
+        return inputPointers
+    }
+
     fun getSuggestions(words: List<String>): SuggestionResults {
         val word = words.firstOrNull() ?: return SuggestionResults(100, false, false)
-        val composedData = ComposedData(InputPointers(1), false, word)
+        val composedData = ComposedData(createInputPointers(word), false, word)
         val ngramContext = NgramContext.BEGINNING_OF_SENTENCE
         val settings = SettingsValuesForSuggestion(false)
         val initialResults = dict.getSuggestions(
@@ -37,7 +49,7 @@ class SingleDictionaryFacilitator(private val dict: Dictionary) : DictionaryFaci
 
         for (i in 1 until words.size) {
             val nextWord = words[i]
-            val nextComposedData = ComposedData(InputPointers(1), false, nextWord)
+            val nextComposedData = ComposedData(createInputPointers(nextWord), false, nextWord)
             val nextResults = dict.getSuggestions(
                 nextComposedData,
                 ngramContext,
