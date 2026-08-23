@@ -131,9 +131,10 @@
         <item name="android:singleLine">true</item>
         <item name="android:ellipsize">none</item>
     </style>
-    <style name="TransparentActivityTheme" parent="@android:style/Theme.Translucent.NoTitleBar">
+    <style name="TransparentActivityTheme" parent="platformActivityTheme">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
     </style>
 </resources>

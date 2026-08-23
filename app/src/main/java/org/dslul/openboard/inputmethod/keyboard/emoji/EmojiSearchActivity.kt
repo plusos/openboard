@@ -50,12 +50,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -137,7 +140,7 @@ class EmojiSearchActivity : ComponentActivity() {
                             .background(Color(0xFF212121))
                             .clickable(false) {}
                             .onGloballyPositioned {
-                                val bottom = it.boundsInWindow().bottom.toInt()
+                                val bottom = (it.positionInWindow().y + it.size.height).toInt()
                                 imeVisible = bottom < screenHeight - 100
                                 if (imeOpened && !imeVisible) {
                                     Handler(Looper.getMainLooper()).postDelayed(closer, 200)
@@ -154,6 +157,15 @@ class EmojiSearchActivity : ComponentActivity() {
                                 heightDp = with(localDensity) { it.size.height.toDp() }
                             }
                     ) {
+                        val windowInfo = LocalWindowInfo.current
+                        val keyboardController = LocalSoftwareKeyboardController.current
+                        val focusRequester = remember { FocusRequester() }
+                        LaunchedEffect(windowInfo.isWindowFocused) {
+                            if (windowInfo.isWindowFocused) {
+                                focusRequester.requestFocus()
+                                keyboardController?.show()
+                            }
+                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -184,7 +196,6 @@ class EmojiSearchActivity : ComponentActivity() {
                                     .fillMaxWidth()
                             )
                         }
-                        val focusRequester = remember { FocusRequester() }
                         var text by remember {
                             mutableStateOf(
                                 TextFieldValue(
@@ -276,7 +287,6 @@ class EmojiSearchActivity : ComponentActivity() {
                                 interactionSource = remember { MutableInteractionSource() }
                             )
                         }
-                        LaunchedEffect(Unit) { focusRequester.requestFocus() }
                     }
                 }
             }
