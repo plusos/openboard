@@ -52,7 +52,7 @@
             export GRADLE_USER_HOME="$HOME/.cache/gradle"
             export ANDROID_USER_HOME="$HOME/.cache/android"
             export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2"
-            export PATH="$ANDROID_HOME/platform-tools:$PATH"
+            export PATH="$ANDROID_HOME/build-tools/34.0.0:$ANDROID_HOME/platform-tools:$PATH"
             echo "OpenBoard Android development environment loaded (Java 17, Android SDK 34, NDK 26.3.11579264)"
           '';
         };
