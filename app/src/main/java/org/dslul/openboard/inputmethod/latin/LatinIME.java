@@ -1104,7 +1104,6 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     void onFinishInputViewInternal(final boolean finishingInput) {
         super.onFinishInputView(finishingInput);
         cleanupInternalStateForFinishInput();
-        org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.Companion.closeDictionaryFacilitator();
     }
 
     private void cleanupInternalStateForFinishInput() {

@@ -59,7 +59,7 @@ final class DynamicGridKeyboard extends Keyboard {
         final Key key0 = getTemplateKey(templateKeyboard, TEMPLATE_KEY_CODE_0);
         final Key key1 = getTemplateKey(templateKeyboard, TEMPLATE_KEY_CODE_1);
         final int horizontalGap = Math.abs(key1.getX() - key0.getX()) - key0.getWidth();
-        final int horizontalStep = key0.getWidth() + horizontalGap;
+        final int horizontalStep = Math.max(1, key0.getWidth() + horizontalGap);
         final int columnsNum = Math.max(1, width / horizontalStep);
         final int maxKeyCount = maxRowCount * columnsNum;
         return new DynamicGridKeyboard(prefs, templateKeyboard, maxKeyCount, isRecents ? EmojiCategory.ID_RECENTS : -1);
@@ -71,9 +71,9 @@ final class DynamicGridKeyboard extends Keyboard {
         final Key key0 = getTemplateKey(templateKeyboard, TEMPLATE_KEY_CODE_0);
         final Key key1 = getTemplateKey(templateKeyboard, TEMPLATE_KEY_CODE_1);
         mHorizontalGap = Math.abs(key1.getX() - key0.getX()) - key0.getWidth();
-        mHorizontalStep = key0.getWidth() + mHorizontalGap;
+        mHorizontalStep = Math.max(1, key0.getWidth() + mHorizontalGap);
         mVerticalStep = key0.getHeight() + mVerticalGap;
-        mColumnsNum = mBaseWidth / mHorizontalStep;
+        mColumnsNum = Math.max(1, mBaseWidth / mHorizontalStep);
         mMaxKeyCount = maxKeyCount;
         mIsRecents = categoryId == EmojiCategory.ID_RECENTS;
         mPrefs = prefs;
@@ -96,6 +96,9 @@ final class DynamicGridKeyboard extends Keyboard {
     }
 
     public int getDynamicOccupiedHeight() {
+        if (mGridKeys.isEmpty() || mColumnsNum <= 0) {
+            return 0;
+        }
         final int row = (mGridKeys.size() - 1) / mColumnsNum + 1;
         return row * mVerticalStep;
     }

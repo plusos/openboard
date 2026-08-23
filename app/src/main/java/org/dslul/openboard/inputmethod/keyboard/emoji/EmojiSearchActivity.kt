@@ -315,6 +315,11 @@ class EmojiSearchActivity : ComponentActivity() {
         super.onStop()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        closeDictionaryFacilitator()
+    }
+
     private fun init() {
         @Suppress("DEPRECATION")
         screenHeight = windowManager.defaultDisplay.height
@@ -372,10 +377,6 @@ class EmojiSearchActivity : ComponentActivity() {
             return
         }
 
-        if (KeyboardSwitcher.getInstance().keyboard == null) {
-            return
-        }
-
         val keyboard = emojiPageKeyboardView.keyboard as? DynamicGridKeyboard ?: return
         keyboard.removeAllKeys()
         firstKey = null
@@ -406,7 +407,8 @@ class EmojiSearchActivity : ComponentActivity() {
                 if (firstKey == null) firstKey = key
             }
         }
-        emojiPageKeyboardView.invalidate()
+        emojiPageKeyboardView.invalidateAllKeys()
+        emojiPageKeyboardView.requestLayout()
 
         currentSearchText = text
         firstSearchDone = true
