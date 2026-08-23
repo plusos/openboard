@@ -94,6 +94,7 @@ public class SettingsValues {
     public final boolean mSlidingKeyInputPreviewEnabled;
     public final int mKeyLongpressTimeout;
     public final boolean mEnableEmojiAltPhysicalKey;
+    public final boolean mInlineEmojiSearch;
     public final boolean mShowAppIcon;
     public final boolean mIsShowAppIconSettingInPreferences;
     public final boolean mCloudSyncEnabled;
@@ -242,6 +243,7 @@ public class SettingsValues {
         mClipboardHistoryRetentionTime = Settings.readClipboardHistoryRetentionTime(prefs, res);
         mOneHandedModeEnabled = Settings.readOneHandedModeEnabled(prefs);
         mOneHandedModeGravity = Settings.readOneHandedModeGravity(prefs);
+        mInlineEmojiSearch = prefs.getBoolean(Settings.PREF_INLINE_EMOJI_SEARCH, true);
     }
 
     public boolean isMetricsLoggingEnabled() {

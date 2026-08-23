@@ -1101,6 +1101,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     void onFinishInputViewInternal(final boolean finishingInput) {
         super.onFinishInputView(finishingInput);
         cleanupInternalStateForFinishInput();
+        org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.Companion.closeDictionaryFacilitator();
     }
 
     private void cleanupInternalStateForFinishInput() {
@@ -1251,7 +1252,8 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
                 && !mKeyboardSwitcher.isShowingClipboardHistory()
                 && mSuggestionStripView.getVisibility() == View.VISIBLE)
                 ? mSuggestionStripView.getHeight() : 0;
-        final int visibleTopY = inputHeight - visibleKeyboardView.getHeight() - suggestionsHeight;
+        int visibleTopY = inputHeight - visibleKeyboardView.getHeight() - suggestionsHeight;
+        visibleTopY -= getEmojiSearchActivityHeight();
         mSuggestionStripView.setMoreSuggestionsHeight(visibleTopY);
         // Need to set expanded touchable region only if a keyboard view is being shown.
         if (visibleKeyboardView.isShown()) {
@@ -1495,6 +1497,9 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     public void onEvent(@Nonnull final Event event) {
         if (Constants.CODE_SHORTCUT == event.getMKeyCode()) {
             mRichImm.switchToShortcutIme(this);
+        } else if (Constants.CODE_EMOJI_SEARCH == event.getMKeyCode()) {
+            launchEmojiSearch();
+            return;
         }
         final InputTransaction completeInputTransaction =
                 mInputLogic.onCodeInput(mSettings.getCurrent(), event,
@@ -2024,5 +2029,35 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
             getWindow().getWindow().setNavigationBarColor(
                     visible ? Color.BLACK : Color.TRANSPARENT);
         }
+    }
+
+    public void launchEmojiSearch() {
+        startActivity(new Intent().setClass(this, org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.class)
+                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK));
+    }
+
+    @Override
+    public int onStartCommand(final Intent intent, final int flags, final int startId) {
+        if (intent != null && org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.EMOJI_SEARCH_DONE_ACTION.equals(intent.getAction()) && !isEmojiSearch()) {
+            if (intent.getBooleanExtra(org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.IME_CLOSED_KEY, false)) {
+                requestHideSelf(0);
+            } else {
+                mHandler.postDelayed(() -> mKeyboardSwitcher.setEmojiKeyboard(), 100);
+                if (intent.hasExtra(org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.EMOJI_KEY)) {
+                    onTextInput(intent.getStringExtra(org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.EMOJI_KEY));
+                }
+            }
+            stopSelf(startId);
+            return START_NOT_STICKY;
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    public boolean isEmojiSearch() {
+        return getEmojiSearchActivityHeight() > 0;
+    }
+
+    private int getEmojiSearchActivityHeight() {
+        return org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.Companion.decodePrivateImeOptions(getCurrentInputEditorInfo()).getHeight();
     }
 }

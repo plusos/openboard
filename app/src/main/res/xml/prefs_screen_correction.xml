@@ -89,6 +89,13 @@
             android:defaultValue="true"
             android:persistent="true" />
 
+        <CheckBoxPreference
+            android:key="pref_inline_emoji_search"
+            android:title="@string/inline_emoji_search"
+            android:summary="@string/inline_emoji_search_summary"
+            android:defaultValue="true"
+            android:persistent="true" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>
