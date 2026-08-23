@@ -2034,7 +2034,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
 
     public void launchEmojiSearch() {
         startActivity(new Intent().setClass(this, org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.class)
-                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK));
+                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
     }
 
     @Override

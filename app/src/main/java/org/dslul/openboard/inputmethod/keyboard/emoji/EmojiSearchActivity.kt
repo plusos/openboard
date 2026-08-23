@@ -169,6 +169,7 @@ class EmojiSearchActivity : ComponentActivity() {
                             )
                         }
                         val focusRequester = remember { FocusRequester() }
+                        val keyboardController = LocalSoftwareKeyboardController.current
                         var text by remember {
                             mutableStateOf(
                                 TextFieldValue(
@@ -260,7 +261,10 @@ class EmojiSearchActivity : ComponentActivity() {
                                 interactionSource = remember { MutableInteractionSource() }
                             )
                         }
-                        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+                        LaunchedEffect(Unit) {
+                            focusRequester.requestFocus()
+                            keyboardController?.show()
+                        }
                     }
                 }
             }
