@@ -5,10 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.preference.PreferenceManager
-import android.util.Log
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.activity.ComponentActivity
@@ -23,15 +20,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.exclude
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -45,7 +39,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,13 +46,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
@@ -134,26 +123,33 @@ class EmojiSearchActivity : ComponentActivity() {
 
             LocalContext.current.setTheme(theme.mStyleId)
             BackHandler { cancel() }
-            Surface(modifier = Modifier.fillMaxSize(), color = Color(0x80000000)) {
-                var heightDp by remember { mutableStateOf(0.dp) }
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { cancel() }
+                    ),
+                color = Color(0x80000000)
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable(onClick = { cancel() })
-                        .windowInsetsPadding(WindowInsets.safeDrawing.exclude(WindowInsets(bottom = heightDp))),
+                        .imePadding()
+                        .navigationBarsPadding(),
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    val localDensity = LocalDensity.current
-                    var heightPx by remember { mutableIntStateOf(0) }
                     Column(
                         modifier = Modifier
+                            .fillMaxWidth()
                             .wrapContentHeight()
                             .background(surfaceBgColor)
-                            .clickable(false) {}
-                            .onGloballyPositioned {
-                                heightPx = it.size.height
-                                heightDp = with(localDensity) { it.size.height.toDp() }
-                            }
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {}
+                            )
                     ) {
                         Row(
                             modifier = Modifier
@@ -228,7 +224,7 @@ class EmojiSearchActivity : ComponentActivity() {
                                 keyboardType = KeyboardType.Text,
                                 imeAction = ImeAction.Done,
                                 platformImeOptions = PlatformImeOptions(
-                                    encodePrivateImeOptions(PrivateImeOptions(heightPx))
+                                    encodePrivateImeOptions()
                                 )
                             ),
                             keyboardActions = KeyboardActions(onDone = {
@@ -284,10 +280,6 @@ class EmojiSearchActivity : ComponentActivity() {
                                 focusRequester.requestFocus()
                                 keyboardController?.show()
                             }
-                        }
-                        LaunchedEffect(Unit) {
-                            focusRequester.requestFocus()
-                            keyboardController?.show()
                         }
                     }
                 }
@@ -424,22 +416,13 @@ class EmojiSearchActivity : ComponentActivity() {
         finish()
     }
 
-    data class PrivateImeOptions(val height: Int)
-
     companion object {
-        private const val PRIVATE_IME_OPTIONS_PREFIX: String = "org.dslul.openboard.inputmethod.keyboard.emoji.search"
+        const val PRIVATE_IME_OPTIONS_PREFIX: String = "org.dslul.openboard.inputmethod.keyboard.emoji.search"
         private var dictionaryFacilitator: SingleDictionaryFacilitator? = null
 
-        fun decodePrivateImeOptions(editorInfo: EditorInfo?): PrivateImeOptions {
-            val privateOptions = editorInfo?.privateImeOptions ?: return PrivateImeOptions(0)
-            if (!privateOptions.startsWith(PRIVATE_IME_OPTIONS_PREFIX)) return PrivateImeOptions(0)
-            val commaIdx = privateOptions.indexOf(',')
-            val startIdx = PRIVATE_IME_OPTIONS_PREFIX.length + 1
-            if (commaIdx > startIdx) {
-                val heightStr = privateOptions.substring(startIdx, commaIdx)
-                return PrivateImeOptions(heightStr.toIntOrNull() ?: 0)
-            }
-            return PrivateImeOptions(0)
+        fun isEmojiSearch(editorInfo: EditorInfo?): Boolean {
+            val privateOptions = editorInfo?.privateImeOptions ?: return false
+            return privateOptions.startsWith(PRIVATE_IME_OPTIONS_PREFIX)
         }
 
         fun closeDictionaryFacilitator() {
@@ -447,8 +430,7 @@ class EmojiSearchActivity : ComponentActivity() {
             dictionaryFacilitator = null
         }
 
-        private fun encodePrivateImeOptions(privateImeOptions: PrivateImeOptions) =
-            "$PRIVATE_IME_OPTIONS_PREFIX.${privateImeOptions.height},"
+        private fun encodePrivateImeOptions() = "$PRIVATE_IME_OPTIONS_PREFIX,"
 
         private fun initDictionaryFacilitator(context: Context) {
             RichInputMethodManager.init(context)

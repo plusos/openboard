@@ -1053,6 +1053,9 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
             switcher.requestUpdatingShiftState(getCurrentAutoCapsState(),
                     getCurrentRecapitalizeState());
         }
+        if (isEmojiSearch()) {
+            switcher.setAlphabetKeyboard();
+        }
         // This will set the punctuation suggestions if next word suggestion is off;
         // otherwise it will clear the suggestion strip.
         setNeutralSuggestionStrip();
@@ -1265,8 +1268,6 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
             outInsets.touchableInsets = InputMethodService.Insets.TOUCHABLE_INSETS_REGION;
             outInsets.touchableRegion.set(touchLeft, touchTop, touchRight, touchBottom);
         }
-        // Has to be subtracted after calculating touchableRegion
-        visibleTopY = Math.max(0, visibleTopY - getEmojiSearchActivityHeight());
         outInsets.contentTopInsets = visibleTopY;
         outInsets.visibleTopInsets = visibleTopY;
         mInsetsUpdater.setInsets(outInsets);
@@ -2039,19 +2040,17 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
 
     public static void onEmojiSearchCompleted(final String emojiText) {
         final LatinIME ime = org.dslul.openboard.inputmethod.keyboard.KeyboardSwitcher.getInstance().getLatinIME();
-        if (ime != null && !ime.isEmojiSearch()) {
-            ime.mHandler.postDelayed(() -> org.dslul.openboard.inputmethod.keyboard.KeyboardSwitcher.getInstance().setEmojiKeyboard(), 100);
-            if (emojiText != null && !emojiText.isEmpty()) {
-                ime.onTextInput(emojiText);
-            }
+        if (ime != null) {
+            ime.mHandler.postDelayed(() -> {
+                org.dslul.openboard.inputmethod.keyboard.KeyboardSwitcher.getInstance().setEmojiKeyboard();
+                if (emojiText != null && !emojiText.isEmpty()) {
+                    ime.onTextInput(emojiText);
+                }
+            }, 100);
         }
     }
 
     public boolean isEmojiSearch() {
-        return getEmojiSearchActivityHeight() > 0;
-    }
-
-    private int getEmojiSearchActivityHeight() {
-        return org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.Companion.decodePrivateImeOptions(getCurrentInputEditorInfo()).getHeight();
+        return org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.Companion.isEmojiSearch(getCurrentInputEditorInfo());
     }
 }
