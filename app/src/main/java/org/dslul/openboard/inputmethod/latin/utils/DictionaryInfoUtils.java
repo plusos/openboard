@@ -247,6 +247,23 @@ public class DictionaryInfoUtils {
         return files != null ? files : new File[0];
     }
 
+    private static final java.util.Set<String> sAssetDicts = new java.util.HashSet<>();
+    private static boolean sAssetDictsLoaded = false;
+
+    private static synchronized boolean hasAssetDict(final String fileName, final Context context) {
+        if (!sAssetDictsLoaded) {
+            try {
+                final String[] list = context.getAssets().list("dicts");
+                if (list != null) {
+                    java.util.Collections.addAll(sAssetDicts, list);
+                }
+            } catch (java.io.IOException ignored) {
+            }
+            sAssetDictsLoaded = true;
+        }
+        return sAssetDicts.contains(fileName);
+    }
+
     public static File extractAssetsDictionary(final String fileName, final Locale locale, final Context context) {
         final String cacheDir = getCacheDirectoryForLocale(locale.toString(), context);
         if (cacheDir == null) return null;
@@ -254,17 +271,26 @@ public class DictionaryInfoUtils {
         if (outFile.exists() && outFile.length() > 0) {
             return outFile;
         }
+        if (!hasAssetDict(fileName, context)) {
+            return null;
+        }
+        final File tempFile = new File(cacheDir, fileName + ".tmp");
         try (java.io.InputStream in = context.getAssets().open("dicts/" + fileName);
-             java.io.FileOutputStream out = new java.io.FileOutputStream(outFile)) {
+             java.io.FileOutputStream out = new java.io.FileOutputStream(tempFile)) {
             final byte[] buffer = new byte[8192];
             int read;
             while ((read = in.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
             }
-            return outFile;
+            out.flush();
         } catch (java.io.IOException e) {
+            tempFile.delete();
             return null;
         }
+        if (tempFile.renameTo(outFile)) {
+            return outFile;
+        }
+        return outFile.exists() && outFile.length() > 0 ? outFile : null;
     }
 
     public static File getCachedDictForLocaleAndType(final Locale locale, final String type, final Context context) {
