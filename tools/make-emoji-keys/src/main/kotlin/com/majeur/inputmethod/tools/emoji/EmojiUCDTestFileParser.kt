@@ -58,11 +58,10 @@ class EmojiUCDTestFileParser: TextFileParser<EmojiData>() {
 
         if (status != "fully-qualified") return
 
-        val rawVersion = EMOJI_VERSION_REGEX.find(extras)?.value ?: "O.0"
+        val match = EMOJI_VERSION_REGEX.find(extras)
+        val rawVersion = match?.groupValues?.get(1) ?: "0.0"
         val version = rawVersion.toFloat()
-        val name = extras
-                .substringAfter(rawVersion)
-                .trim()
+        val name = if (match != null) extras.substring(match.range.last + 1).trim() else extras.trim()
 
         val cps = codePoints
                 .split(" ")
@@ -81,7 +80,7 @@ class EmojiUCDTestFileParser: TextFileParser<EmojiData>() {
         private const val PROP_SUBGROUP = "subgroup:"
         private const val EOF = "EOF"
 
-        private val EMOJI_VERSION_REGEX = "[0-9]*[.]?[0-9]+".toRegex()
+        private val EMOJI_VERSION_REGEX = "E([0-9]+(?:\\.[0-9]+)?)".toRegex()
     }
 
 

@@ -8,7 +8,7 @@ import java.util.jar.JarFile
 
 class EmojiCategoriesResource(private val jarFile: JarFile) {
 
-    fun writeToAndroidRes(outDir: String?, emojiData: EmojiData, supportData: Map<Int, Int>) {
+    fun writeToAndroidRes(outDir: String?, emojiData: EmojiData, supportData: Map<String, Int>) {
         val template = JarUtils.getAndroidResTemplateResource(jarFile)
         val resourceDir = template.substring(0, template.lastIndexOf('/'))
         var ps: PrintStream? = null
@@ -36,7 +36,7 @@ class EmojiCategoriesResource(private val jarFile: JarFile) {
 
     @Throws(IOException::class)
     private fun inflateTemplate(reader: LineNumberReader, out: PrintStream,
-                                emojis: EmojiData, supportData: Map<Int, Int>) {
+                                emojis: EmojiData, supportData: Map<String, Int>) {
         reader.lines().forEach {
             when {
                 it.contains(MARK_UNICODE_VER) ->
@@ -68,7 +68,7 @@ class EmojiCategoriesResource(private val jarFile: JarFile) {
         }
     }
 
-    private fun dumpEmojiSpecs(out: PrintStream, emojiData: EmojiData, supportData: Map<Int, Int>,
+    private fun dumpEmojiSpecs(out: PrintStream, emojiData: EmojiData, supportData: Map<String, Int>,
                                group: EmojiGroup) {
         emojiData[group].forEach { emoji ->
             val minApi = getMinApi(emoji.codes, supportData)
@@ -83,7 +83,7 @@ class EmojiCategoriesResource(private val jarFile: JarFile) {
         }
     }
 
-    private fun dumpEmojiSpecsVariant(out: PrintStream, emojiData: EmojiData, supportData: Map<Int, Int>,
+    private fun dumpEmojiSpecsVariant(out: PrintStream, emojiData: EmojiData, supportData: Map<String, Int>,
                                group: EmojiGroup) {
         emojiData[group].forEach { baseEmoji ->
             val minApi = getMinApi(baseEmoji.codes, supportData)
@@ -122,11 +122,9 @@ class EmojiCategoriesResource(private val jarFile: JarFile) {
         return if (minApi > 19) "$cps||$minApi" else cps
     }
 
-    private fun getMinApi(codes: IntArray, supportData: Map<Int, Int>): Int {
-        val hash = codes
-                .joinToString(separator = "")
-                .hashCode()
-        return supportData[hash] ?: -1
+    private fun getMinApi(codes: IntArray, supportData: Map<String, Int>): Int {
+        val key = codes.joinToString(separator = ",")
+        return supportData[key] ?: -1
     }
 
     private fun printCompatNotFound(codes: IntArray) {

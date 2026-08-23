@@ -1,9 +1,9 @@
 package com.majeur.inputmethod.tools.emoji
 
 
-class AndroidEmojiSupportFileParser : TextFileParser<Map<Int, Int>>() {
+class AndroidEmojiSupportFileParser : TextFileParser<Map<String, Int>>() {
 
-    private val map = mutableMapOf<Int, Int>()
+    private val map = mutableMapOf<String, Int>()
     private var currentApiLevel = 0
 
     override fun getParseResult() = map
@@ -22,17 +22,17 @@ class AndroidEmojiSupportFileParser : TextFileParser<Map<Int, Int>>() {
     }
 
     private fun parseCodePoints(content: String) {
-        val codePointsHash = content
+        val codePointsKey = content
                 .substringBefore("#")
                 .trim()
                 .split(" ")
+                .filter { it.isNotBlank() }
                 .map { it
                         .trim()
                         .removePrefix("U+")
                         .toInt(radix = 16) }
-                .joinToString(separator = "")
-                .hashCode()
-        map[codePointsHash] = currentApiLevel
+                .joinToString(separator = ",")
+        map[codePointsKey] = currentApiLevel
     }
 
     companion object {
