@@ -14,6 +14,7 @@ import android.view.inputmethod.EditorInfo
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -112,6 +113,7 @@ class EmojiSearchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         init()
+        enableEdgeToEdge()
         setContent {
             LocalContext.current.setTheme(KeyboardTheme.getKeyboardTheme(this).mStyleId)
             BackHandler { cancel() }
@@ -136,15 +138,6 @@ class EmojiSearchActivity : ComponentActivity() {
                                 heightDp = with(localDensity) { it.size.height.toDp() }
                             }
                     ) {
-                        val windowInfo = LocalWindowInfo.current
-                        val keyboardController = LocalSoftwareKeyboardController.current
-                        val focusRequester = remember { FocusRequester() }
-                        LaunchedEffect(windowInfo.isWindowFocused) {
-                            if (windowInfo.isWindowFocused) {
-                                focusRequester.requestFocus()
-                                keyboardController?.show()
-                            }
-                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -175,6 +168,7 @@ class EmojiSearchActivity : ComponentActivity() {
                                     .fillMaxWidth()
                             )
                         }
+                        val focusRequester = remember { FocusRequester() }
                         var text by remember {
                             mutableStateOf(
                                 TextFieldValue(
@@ -266,6 +260,7 @@ class EmojiSearchActivity : ComponentActivity() {
                                 interactionSource = remember { MutableInteractionSource() }
                             )
                         }
+                        LaunchedEffect(Unit) { focusRequester.requestFocus() }
                     }
                 }
             }
