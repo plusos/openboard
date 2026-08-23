@@ -108,14 +108,31 @@ class EmojiSearchActivity : ComponentActivity() {
     private var templateKey0: Key? = null
     private var firstKey: Key? = null
     private var pressedKey: Key? = null
+    private var currentSearchText: String = ""
 
     @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState != null) {
+            currentSearchText = savedInstanceState.getString("SEARCH_TEXT", "")
+        }
         init()
         enableEdgeToEdge()
         setContent {
-            LocalContext.current.setTheme(KeyboardTheme.getKeyboardTheme(this).mStyleId)
+            val theme = KeyboardTheme.getKeyboardTheme(this)
+            val isSystemDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val isDark = when (KeyboardTheme.getThemeVariant(theme.mThemeId)) {
+                KeyboardTheme.THEME_VARIANT_LIGHT, KeyboardTheme.THEME_VARIANT_WHITE -> false
+                KeyboardTheme.THEME_VARIANT_DARK -> true
+                else -> isSystemDark
+            }
+            val surfaceBgColor = if (isDark) Color(0xFF212121) else Color(0xFFECEFF1)
+            val fieldContainerColor = if (isDark) Color(0xFF333333) else Color(0xFFFFFFFF)
+            val textColor = if (isDark) Color.White else Color(0xFF212121)
+            val placeholderColor = if (isDark) Color(0xFFAAAAAA) else Color(0xFF757575)
+            val iconTint = if (isDark) Color.White else Color(0xFF424242)
+
+            LocalContext.current.setTheme(theme.mStyleId)
             BackHandler { cancel() }
             Surface(modifier = Modifier.fillMaxSize(), color = Color(0x80000000)) {
                 var heightDp by remember { mutableStateOf(0.dp) }
@@ -131,7 +148,7 @@ class EmojiSearchActivity : ComponentActivity() {
                     Column(
                         modifier = Modifier
                             .wrapContentHeight()
-                            .background(Color(0xFF212121))
+                            .background(surfaceBgColor)
                             .clickable(false) {}
                             .onGloballyPositioned {
                                 heightPx = it.size.height
@@ -148,13 +165,13 @@ class EmojiSearchActivity : ComponentActivity() {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_arrow_back),
                                     contentDescription = stringResource(R.string.spoken_description_action_previous),
-                                    tint = Color.White
+                                    tint = iconTint
                                 )
                             }
                             Text(
                                 text = stringResource(R.string.emoji_search_title),
                                 fontSize = 18.sp,
-                                color = Color.White,
+                                color = textColor,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .align(Alignment.CenterVertically)
@@ -173,23 +190,23 @@ class EmojiSearchActivity : ComponentActivity() {
                         var text by remember {
                             mutableStateOf(
                                 TextFieldValue(
-                                    searchText,
-                                    selection = TextRange(searchText.length)
+                                    currentSearchText,
+                                    selection = TextRange(currentSearchText.length)
                                 )
                             )
                         }
                         val textFieldColors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF333333),
-                            unfocusedContainerColor = Color(0xFF333333),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            cursorColor = Color.White,
-                            focusedLeadingIconColor = Color.White,
-                            unfocusedLeadingIconColor = Color.White,
-                            focusedTrailingIconColor = Color.White,
-                            unfocusedTrailingIconColor = Color.White,
-                            focusedPlaceholderColor = Color(0xFFAAAAAA),
-                            unfocusedPlaceholderColor = Color(0xFFAAAAAA)
+                            focusedContainerColor = fieldContainerColor,
+                            unfocusedContainerColor = fieldContainerColor,
+                            focusedTextColor = textColor,
+                            unfocusedTextColor = textColor,
+                            cursorColor = textColor,
+                            focusedLeadingIconColor = iconTint,
+                            unfocusedLeadingIconColor = iconTint,
+                            focusedTrailingIconColor = iconTint,
+                            unfocusedTrailingIconColor = iconTint,
+                            focusedPlaceholderColor = placeholderColor,
+                            unfocusedPlaceholderColor = placeholderColor
                         )
                         BasicTextField(
                             value = text,
@@ -199,7 +216,7 @@ class EmojiSearchActivity : ComponentActivity() {
                                 .focusRequester(focusRequester),
                             textStyle = TextStyle(
                                 textDirection = TextDirection.Content,
-                                color = Color.White,
+                                color = textColor,
                                 fontSize = 16.sp
                             ),
                             onValueChange = {
@@ -221,7 +238,7 @@ class EmojiSearchActivity : ComponentActivity() {
                                 finish()
                             }),
                             singleLine = true,
-                            cursorBrush = SolidColor(Color.White)
+                            cursorBrush = SolidColor(textColor)
                         ) { innerTextField ->
                             TextFieldDefaults.DecorationBox(
                                 value = text.text,
@@ -232,14 +249,14 @@ class EmojiSearchActivity : ComponentActivity() {
                                 placeholder = {
                                     Text(
                                         stringResource(R.string.search_field_placeholder),
-                                        color = Color(0xFFAAAAAA)
+                                        color = placeholderColor
                                     )
                                 },
                                 leadingIcon = {
                                     Icon(
                                         painter = painterResource(R.drawable.sym_keyboard_search_lxx_light),
                                         contentDescription = stringResource(R.string.spoken_description_emoji_search),
-                                        tint = Color.White
+                                        tint = iconTint
                                     )
                                 },
                                 trailingIcon = {
@@ -251,7 +268,7 @@ class EmojiSearchActivity : ComponentActivity() {
                                             Icon(
                                                 painter = painterResource(R.drawable.ic_close),
                                                 contentDescription = stringResource(R.string.not_now),
-                                                tint = Color.White
+                                                tint = iconTint
                                             )
                                         }
                                     }
@@ -269,7 +286,6 @@ class EmojiSearchActivity : ComponentActivity() {
                             }
                         }
                         LaunchedEffect(Unit) {
-                            kotlinx.coroutines.delay(100)
                             focusRequester.requestFocus()
                             keyboardController?.show()
                         }
@@ -279,28 +295,31 @@ class EmojiSearchActivity : ComponentActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("SEARCH_TEXT", currentSearchText)
+    }
+
     override fun onEnterAnimationComplete() {
         super.onEnterAnimationComplete()
-        search(searchText)
+        search(currentSearchText)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         init()
         firstSearchDone = false
-        search(searchText)
+        search(currentSearchText)
     }
 
     override fun onStop() {
-        val intent = Intent(this, LatinIME::class.java).setAction(EMOJI_SEARCH_DONE_ACTION)
         pressedKey?.let {
             val emojiText: String = (it.outputText ?: if (it.code > 0) Character.toString(it.code.toChar()) else "")
             if (emojiText.isNotEmpty()) {
-                intent.putExtra(EMOJI_KEY, emojiText)
+                LatinIME.onEmojiSearchCompleted(emojiText)
             }
             KeyboardSwitcher.getInstance().emojiPalettesView?.addRecentKey(it)
         }
-        startService(intent)
         super.onStop()
     }
 
@@ -357,7 +376,7 @@ class EmojiSearchActivity : ComponentActivity() {
         initDictionaryFacilitator(this)
         val facilitator = dictionaryFacilitator ?: return
 
-        if (firstSearchDone && text == searchText) {
+        if (firstSearchDone && text == currentSearchText) {
             return
         }
 
@@ -397,7 +416,7 @@ class EmojiSearchActivity : ComponentActivity() {
         }
         emojiPageKeyboardView.invalidate()
 
-        searchText = text
+        currentSearchText = text
         firstSearchDone = true
     }
 
@@ -408,12 +427,8 @@ class EmojiSearchActivity : ComponentActivity() {
     data class PrivateImeOptions(val height: Int)
 
     companion object {
-        const val EMOJI_SEARCH_DONE_ACTION: String = "org.dslul.openboard.inputmethod.EMOJI_SEARCH_DONE"
-        const val IME_CLOSED_KEY: String = "IME_CLOSED"
-        const val EMOJI_KEY: String = "EMOJI"
         private const val PRIVATE_IME_OPTIONS_PREFIX: String = "org.dslul.openboard.inputmethod.keyboard.emoji.search"
         private var dictionaryFacilitator: SingleDictionaryFacilitator? = null
-        private var searchText: String = ""
 
         fun decodePrivateImeOptions(editorInfo: EditorInfo?): PrivateImeOptions {
             val privateOptions = editorInfo?.privateImeOptions ?: return PrivateImeOptions(0)

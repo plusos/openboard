@@ -2037,21 +2037,14 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
     }
 
-    @Override
-    public int onStartCommand(final Intent intent, final int flags, final int startId) {
-        if (intent != null && org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.EMOJI_SEARCH_DONE_ACTION.equals(intent.getAction()) && !isEmojiSearch()) {
-            if (intent.getBooleanExtra(org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.IME_CLOSED_KEY, false)) {
-                requestHideSelf(0);
-            } else {
-                mHandler.postDelayed(() -> mKeyboardSwitcher.setEmojiKeyboard(), 100);
-                if (intent.hasExtra(org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.EMOJI_KEY)) {
-                    onTextInput(intent.getStringExtra(org.dslul.openboard.inputmethod.keyboard.emoji.EmojiSearchActivity.EMOJI_KEY));
-                }
+    public static void onEmojiSearchCompleted(final String emojiText) {
+        final LatinIME ime = org.dslul.openboard.inputmethod.keyboard.KeyboardSwitcher.getInstance().getLatinIME();
+        if (ime != null && !ime.isEmojiSearch()) {
+            ime.mHandler.postDelayed(() -> org.dslul.openboard.inputmethod.keyboard.KeyboardSwitcher.getInstance().setEmojiKeyboard(), 100);
+            if (emojiText != null && !emojiText.isEmpty()) {
+                ime.onTextInput(emojiText);
             }
-            stopSelf(startId);
-            return START_NOT_STICKY;
         }
-        return super.onStartCommand(intent, flags, startId);
     }
 
     public boolean isEmojiSearch() {
