@@ -27,7 +27,7 @@ Run commands within `nix develop` (or via direnv):
 
 - Enter a branch before making changes in the repository (tiny doc tweaks excluded).
 - Use atomic commits organized logically by component/layer.
-- Prefer linear commit history (fast-forward merges, avoid merge commits).
+- Prefer linear commit history (fast-forward merges, avoid merge commits when possible).
 
 # Code Quality
 
