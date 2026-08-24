@@ -311,25 +311,6 @@ public class DictionaryInfoUtils {
         return extractAssetsDictionary(type + "_en.dict", Locale.ENGLISH, context);
     }
 
-    public static List<Locale> getLocalesWithEmojiDicts(final Context context) {
-        final List<Locale> locales = new ArrayList<>();
-        RichInputMethodManager.init(context);
-        final List<InputMethodSubtype> enabledSubtypes = RichInputMethodManager
-                .getInstance().getMyEnabledInputMethodSubtypeList(true);
-        for (final InputMethodSubtype subtype : enabledSubtypes) {
-            final Locale locale = LocaleUtils.constructLocaleFromString(subtype.getLocale());
-            if (getCachedDictForLocaleAndType(locale, Dictionary.TYPE_EMOJI, context) != null) {
-                if (!locales.contains(locale)) {
-                    locales.add(locale);
-                }
-            }
-        }
-        if (locales.isEmpty()) {
-            locales.add(Locale.ENGLISH);
-        }
-        return locales;
-    }
-
     public static boolean isMainWordListId(final String id) {
         final String[] idArray = id.split(BinaryDictionaryGetter.ID_CATEGORY_SEPARATOR);
         // An id is supposed to be in format category:locale, so splitting on the separator

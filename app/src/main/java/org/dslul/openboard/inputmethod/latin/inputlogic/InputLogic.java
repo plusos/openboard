@@ -46,6 +46,7 @@ import org.dslul.openboard.inputmethod.latin.SuggestedWords;
 import org.dslul.openboard.inputmethod.latin.SuggestedWords.SuggestedWordInfo;
 import org.dslul.openboard.inputmethod.latin.WordComposer;
 import org.dslul.openboard.inputmethod.latin.common.Constants;
+import org.dslul.openboard.inputmethod.latin.common.EmojiKt;
 import org.dslul.openboard.inputmethod.latin.common.InputPointers;
 import org.dslul.openboard.inputmethod.latin.common.StringUtils;
 import org.dslul.openboard.inputmethod.latin.define.DebugFlags;
@@ -397,7 +398,7 @@ public final class InputLogic {
             // If the user is in the middle of correcting a word, we should learn it before moving
             // the cursor away.
             if (!TextUtils.isEmpty(mWordBeingCorrectedByCursor)
-                    && !org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(mWordBeingCorrectedByCursor)) {
+                    && !EmojiKt.containsEmoji(mWordBeingCorrectedByCursor)) {
                 final int timeStampInSeconds = (int)TimeUnit.MILLISECONDS.toSeconds(
                         System.currentTimeMillis());
                 performAdditionToUserHistoryDictionary(settingsValues, mWordBeingCorrectedByCursor,
@@ -1473,7 +1474,7 @@ public final class InputLogic {
         }
 
         if (TextUtils.isEmpty(suggestion)
-                || org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(suggestion)) return;
+                || EmojiKt.containsEmoji(suggestion)) return;
         final boolean wasAutoCapitalized =
                 mWordComposer.wasAutoCapitalized() && !mWordComposer.isMostlyCaps();
         final int timeStampInSeconds = (int)TimeUnit.MILLISECONDS.toSeconds(
@@ -2215,7 +2216,7 @@ public final class InputLogic {
             startTimeMillis = System.currentTimeMillis();
         }
         // Add the word to the user history dictionary if it does not contain an emoji
-        if (!org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(chosenWord)) {
+        if (!EmojiKt.containsEmoji(chosenWord)) {
             performAdditionToUserHistoryDictionary(settingsValues, chosenWord, ngramContext);
         }
         if (DebugFlags.DEBUG_ENABLED) {

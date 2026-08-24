@@ -28,6 +28,7 @@ import org.dslul.openboard.inputmethod.latin.NgramContext.WordInfo;
 import org.dslul.openboard.inputmethod.latin.SuggestedWords.SuggestedWordInfo;
 import org.dslul.openboard.inputmethod.latin.common.ComposedData;
 import org.dslul.openboard.inputmethod.latin.common.Constants;
+import org.dslul.openboard.inputmethod.latin.common.EmojiKt;
 import org.dslul.openboard.inputmethod.latin.common.StringUtils;
 import org.dslul.openboard.inputmethod.latin.permissions.PermissionsUtil;
 import org.dslul.openboard.inputmethod.latin.personalization.UserHistoryDictionary;
@@ -498,7 +499,7 @@ public class DictionaryFacilitatorImpl implements DictionaryFacilitator {
             @Nonnull final NgramContext ngramContext, final long timeStampInSeconds,
             final boolean blockPotentiallyOffensive) {
         if (TextUtils.isEmpty(suggestion)
-                || org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(suggestion)) {
+                || EmojiKt.containsEmoji(suggestion)) {
             return;
         }
         // Update the spelling cache before learning. Words that are not yet added to user history
@@ -545,7 +546,7 @@ public class DictionaryFacilitatorImpl implements DictionaryFacilitator {
             final NgramContext ngramContext, final String word, final boolean wasAutoCapitalized,
             final int timeStampInSeconds, final boolean blockPotentiallyOffensive) {
         if (TextUtils.isEmpty(word)
-                || org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(word)) {
+                || EmojiKt.containsEmoji(word)) {
             return;
         }
         final ExpandableBinaryDictionary userHistoryDictionary =
