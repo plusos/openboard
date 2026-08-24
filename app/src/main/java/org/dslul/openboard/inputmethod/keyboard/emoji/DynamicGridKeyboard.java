@@ -96,11 +96,13 @@ final class DynamicGridKeyboard extends Keyboard {
     }
 
     public int getDynamicOccupiedHeight() {
-        if (mGridKeys.isEmpty() || mColumnsNum <= 0) {
-            return 0;
+        synchronized (mLock) {
+            if (mGridKeys.isEmpty() || mColumnsNum <= 0) {
+                return 0;
+            }
+            final int row = (mGridKeys.size() - 1) / mColumnsNum + 1;
+            return row * mVerticalStep;
         }
-        final int row = (mGridKeys.size() - 1) / mColumnsNum + 1;
-        return row * mVerticalStep;
     }
 
     public int getColumnsCount() {

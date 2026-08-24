@@ -264,7 +264,7 @@ public class DictionaryInfoUtils {
         return sAssetDicts.contains(fileName);
     }
 
-    public static File extractAssetsDictionary(final String fileName, final Locale locale, final Context context) {
+    public static synchronized File extractAssetsDictionary(final String fileName, final Locale locale, final Context context) {
         final String cacheDir = getCacheDirectoryForLocale(locale.toString(), context);
         if (cacheDir == null) return null;
         final File outFile = new File(cacheDir, fileName);
@@ -274,7 +274,7 @@ public class DictionaryInfoUtils {
         if (!hasAssetDict(fileName, context)) {
             return null;
         }
-        final File tempFile = new File(cacheDir, fileName + ".tmp");
+        final File tempFile = new File(cacheDir, fileName + "." + java.util.UUID.randomUUID() + ".tmp");
         try (java.io.InputStream in = context.getAssets().open("dicts/" + fileName);
              java.io.FileOutputStream out = new java.io.FileOutputStream(tempFile)) {
             final byte[] buffer = new byte[8192];
@@ -290,6 +290,7 @@ public class DictionaryInfoUtils {
         if (tempFile.renameTo(outFile)) {
             return outFile;
         }
+        tempFile.delete();
         return outFile.exists() && outFile.length() > 0 ? outFile : null;
     }
 

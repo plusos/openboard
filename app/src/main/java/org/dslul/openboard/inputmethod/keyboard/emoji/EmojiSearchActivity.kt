@@ -63,8 +63,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PlatformImeOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -95,7 +93,6 @@ private const val TAG = "EmojiSearchActivity"
 class EmojiSearchActivity : ComponentActivity() {
     private var firstSearchDone = false
     private var screenHeight: Int = 0
-    private lateinit var hintLocales: LocaleList
     private lateinit var emojiPageKeyboardView: EmojiPageKeyboardView
     private lateinit var templateKeyboard: Keyboard
     private var templateKey0: Key? = null
@@ -320,7 +317,7 @@ class EmojiSearchActivity : ComponentActivity() {
 
     override fun onStop() {
         pressedKey?.let {
-            val emojiText: String = (it.outputText ?: if (it.code > 0) Character.toString(it.code.toChar()) else "")
+            val emojiText: String = (it.outputText ?: if (it.code > 0) String(Character.toChars(it.code)) else "")
             if (emojiText.isNotEmpty()) {
                 LatinIME.onEmojiSearchCompleted(emojiText)
             }
@@ -337,9 +334,6 @@ class EmojiSearchActivity : ComponentActivity() {
     private fun init() {
         @Suppress("DEPRECATION")
         screenHeight = windowManager.defaultDisplay.height
-        hintLocales = LocaleList(
-            DictionaryInfoUtils.getLocalesWithEmojiDicts(this).map { Locale(it.toLanguageTag()) }
-        )
         val theme = KeyboardTheme.getKeyboardTheme(this)
         val themeContext = ContextThemeWrapper(this, theme.mStyleId)
         val keyboardWidth = ResourceUtils.getDefaultKeyboardWidth(resources)

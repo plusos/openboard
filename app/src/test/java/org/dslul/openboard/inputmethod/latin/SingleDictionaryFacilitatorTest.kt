@@ -138,4 +138,14 @@ class SingleDictionaryFacilitatorTest {
 
         assertEquals(dummy?.nativeProximityInfo ?: 0L, fakeDict.lastProximityInfoHandle)
     }
+
+    @Test
+    fun testIsForLocale() {
+        val fakeDictEn = FakeDictionary(emptyMap())
+        val facilitator = SingleDictionaryFacilitator(fakeDictEn)
+        assertTrue(facilitator.isForLocale(Locale.ENGLISH))
+        assertTrue(facilitator.isForLocale(Locale.US))
+        org.junit.Assert.assertFalse(facilitator.isForLocale(Locale.FRENCH))
+        org.junit.Assert.assertFalse(facilitator.isForLocale(null))
+    }
 }
