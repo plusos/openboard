@@ -396,7 +396,8 @@ public final class InputLogic {
             resetEntireInputState(newSelStart, newSelEnd, false /* clearSuggestionStrip */);
             // If the user is in the middle of correcting a word, we should learn it before moving
             // the cursor away.
-            if (!TextUtils.isEmpty(mWordBeingCorrectedByCursor)) {
+            if (!TextUtils.isEmpty(mWordBeingCorrectedByCursor)
+                    && !org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(mWordBeingCorrectedByCursor)) {
                 final int timeStampInSeconds = (int)TimeUnit.MILLISECONDS.toSeconds(
                         System.currentTimeMillis());
                 performAdditionToUserHistoryDictionary(settingsValues, mWordBeingCorrectedByCursor,
@@ -1471,7 +1472,8 @@ public final class InputLogic {
             return;
         }
 
-        if (TextUtils.isEmpty(suggestion)) return;
+        if (TextUtils.isEmpty(suggestion)
+                || org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(suggestion)) return;
         final boolean wasAutoCapitalized =
                 mWordComposer.wasAutoCapitalized() && !mWordComposer.isMostlyCaps();
         final int timeStampInSeconds = (int)TimeUnit.MILLISECONDS.toSeconds(
@@ -2212,8 +2214,8 @@ public final class InputLogic {
                     + "Connection.commitText");
             startTimeMillis = System.currentTimeMillis();
         }
-        // Add the word to the user history dictionary if it is not an emoji
-        if (!org.dslul.openboard.inputmethod.latin.common.EmojiKt.isEmoji(chosenWord)) {
+        // Add the word to the user history dictionary if it does not contain an emoji
+        if (!org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(chosenWord)) {
             performAdditionToUserHistoryDictionary(settingsValues, chosenWord, ngramContext);
         }
         if (DebugFlags.DEBUG_ENABLED) {

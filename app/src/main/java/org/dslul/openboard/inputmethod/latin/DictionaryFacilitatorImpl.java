@@ -497,6 +497,10 @@ public class DictionaryFacilitatorImpl implements DictionaryFacilitator {
     public void addToUserHistory(final String suggestion, final boolean wasAutoCapitalized,
             @Nonnull final NgramContext ngramContext, final long timeStampInSeconds,
             final boolean blockPotentiallyOffensive) {
+        if (TextUtils.isEmpty(suggestion)
+                || org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(suggestion)) {
+            return;
+        }
         // Update the spelling cache before learning. Words that are not yet added to user history
         // and appear in no other language model are not considered valid.
         putWordIntoValidSpellingWordCache("addToUserHistory", suggestion);
@@ -540,6 +544,10 @@ public class DictionaryFacilitatorImpl implements DictionaryFacilitator {
     private void addWordToUserHistory(final DictionaryGroup dictionaryGroup,
             final NgramContext ngramContext, final String word, final boolean wasAutoCapitalized,
             final int timeStampInSeconds, final boolean blockPotentiallyOffensive) {
+        if (TextUtils.isEmpty(word)
+                || org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(word)) {
+            return;
+        }
         final ExpandableBinaryDictionary userHistoryDictionary =
                 dictionaryGroup.getSubDict(Dictionary.TYPE_USER_HISTORY);
         if (userHistoryDictionary == null || !isForLocale(userHistoryDictionary.mLocale)) {

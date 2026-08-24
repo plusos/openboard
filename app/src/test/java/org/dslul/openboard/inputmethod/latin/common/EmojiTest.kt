@@ -69,4 +69,45 @@ class EmojiTest {
         assertEquals(listOf("red", "heart"), "  red   heart  ".splitOnWhitespace())
         assertEquals(emptyList<String>(), "   ".splitOnWhitespace())
     }
+
+    @Test
+    fun testContainsEmoji() {
+        // Single emojis
+        assertTrue(containsEmoji("😀"))
+        assertTrue(containsEmoji("🎉"))
+        assertTrue(containsEmoji("❤️"))
+        assertTrue(containsEmoji("👍🏽"))
+        assertTrue(containsEmoji("👨‍👩‍👧‍👦"))
+        assertTrue(containsEmoji("0️⃣"))
+
+        // Multiple emojis
+        assertTrue(containsEmoji("😀😀"))
+        assertTrue(containsEmoji("🎉🚀✨"))
+        assertTrue(containsEmoji("❤️🔥"))
+
+        // Mixed text and emojis
+        assertTrue(containsEmoji("cat 🐱"))
+        assertTrue(containsEmoji("party 🎉 time"))
+        assertTrue(containsEmoji("hello 😀"))
+        assertTrue(containsEmoji("🎉hello"))
+
+        // Non-emojis (Latin, numbers, punctuation)
+        assertFalse(containsEmoji("a"))
+        assertFalse(containsEmoji("Z"))
+        assertFalse(containsEmoji("hello"))
+        assertFalse(containsEmoji("happy"))
+        assertFalse(containsEmoji("123"))
+        assertFalse(containsEmoji("!@#$%^&*()"))
+        assertFalse(containsEmoji(null))
+        assertFalse(containsEmoji(""))
+        assertFalse(containsEmoji("   "))
+
+        // Non-emojis in other scripts (Japanese, Cyrillic, Greek, Arabic)
+        assertFalse(containsEmoji("こんにちは"))
+        assertFalse(containsEmoji("日本語"))
+        assertFalse(containsEmoji("Привет мир"))
+        assertFalse(containsEmoji("Γειά σου"))
+        assertFalse(containsEmoji("مرحبا بالعالم"))
+    }
 }
+

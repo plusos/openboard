@@ -170,6 +170,11 @@ public final class Suggest {
         final ArrayList<SuggestedWordInfo> suggestionsContainer =
                 getTransformedSuggestedWordInfoList(wordComposer, suggestionResults,
                         trailingSingleQuotesCount, locale);
+        for (int i = suggestionsContainer.size() - 1; i >= 0; --i) {
+            if (org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(suggestionsContainer.get(i).mWord)) {
+                suggestionsContainer.remove(i);
+            }
+        }
 
         boolean foundInDictionary = false;
         Dictionary sourceDictionaryOfRemovedWord = null;
@@ -331,7 +336,8 @@ public final class Suggest {
         // For some reason some suggestions with MIN_VALUE are making their way here.
         // TODO: Find a more robust way to detect distracters.
         for (int i = suggestionsContainer.size() - 1; i >= 0; --i) {
-            if (suggestionsContainer.get(i).mScore < SUPPRESS_SUGGEST_THRESHOLD) {
+            if (suggestionsContainer.get(i).mScore < SUPPRESS_SUGGEST_THRESHOLD
+                    || org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(suggestionsContainer.get(i).mWord)) {
                 suggestionsContainer.remove(i);
             }
         }

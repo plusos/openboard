@@ -39,5 +39,11 @@ fun isEmoji(text: CharSequence): Boolean {
     return mightBeEmoji(str) && str.matches(singleEmojiRegex)
 }
 
+fun containsEmoji(text: CharSequence?): Boolean {
+    if (text == null || text.isEmpty()) return false
+    return mightBeEmoji(text) && singleEmojiRegex.containsMatchIn(text)
+}
+
 fun String.splitOnWhitespace(): List<String> =
     this.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+

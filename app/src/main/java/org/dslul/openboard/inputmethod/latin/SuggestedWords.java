@@ -368,7 +368,7 @@ public class SuggestedWords {
 
         public boolean isEmoji() {
             if (mIsEmoji == null) {
-                mIsEmoji = org.dslul.openboard.inputmethod.latin.common.EmojiKt.isEmoji(mWord);
+                mIsEmoji = org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(mWord);
             }
             return mIsEmoji;
         }
