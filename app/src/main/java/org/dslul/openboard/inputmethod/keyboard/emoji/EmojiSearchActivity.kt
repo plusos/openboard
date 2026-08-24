@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.view.ContextThemeWrapper
+import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.activity.ComponentActivity
@@ -338,9 +340,11 @@ class EmojiSearchActivity : ComponentActivity() {
         hintLocales = LocaleList(
             DictionaryInfoUtils.getLocalesWithEmojiDicts(this).map { Locale(it.toLanguageTag()) }
         )
+        val theme = KeyboardTheme.getKeyboardTheme(this)
+        val themeContext = ContextThemeWrapper(this, theme.mStyleId)
         val keyboardWidth = ResourceUtils.getDefaultKeyboardWidth(resources)
         val emojiHeight = EmojiLayoutParams(resources).mEmojiKeyboardHeight
-        val layoutSet = KeyboardLayoutSet.Builder(this, null)
+        val layoutSet = KeyboardLayoutSet.Builder(themeContext, null)
             .setSubtype(RichInputMethodSubtype.getEmojiSubtype())
             .setKeyboardGeometry(keyboardWidth, emojiHeight)
             .build()
@@ -358,21 +362,22 @@ class EmojiSearchActivity : ComponentActivity() {
                 break
             }
         }
-        emojiPageKeyboardView = EmojiPageKeyboardView(this, null)
-        emojiPageKeyboardView.setKeyboard(keyboard)
-        emojiPageKeyboardView.layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-        emojiPageKeyboardView.setPadding(0, 10, 0, 10)
-
-        emojiPageKeyboardView.setOnKeyEventListener(object : OnKeyEventListener {
-            override fun onPressKey(key: Key) {}
-            override fun onReleaseKey(key: Key) {
-                pressedKey = key
-                finish()
-            }
-        })
+        emojiPageKeyboardView = EmojiPageKeyboardView(themeContext, null).apply {
+            layoutDirection = View.LAYOUT_DIRECTION_LTR
+            setKeyboard(keyboard)
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            setPadding(0, 10, 0, 10)
+            setOnKeyEventListener(object : OnKeyEventListener {
+                override fun onPressKey(key: Key) {}
+                override fun onReleaseKey(key: Key) {
+                    pressedKey = key
+                    finish()
+                }
+            })
+        }
         KeyboardSwitcher.getInstance().setAlphabetKeyboard()
     }
 
