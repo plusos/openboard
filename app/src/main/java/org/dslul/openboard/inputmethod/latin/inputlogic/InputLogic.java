@@ -52,11 +52,6 @@ import org.dslul.openboard.inputmethod.latin.define.DebugFlags;
 import org.dslul.openboard.inputmethod.latin.settings.SettingsValues;
 import org.dslul.openboard.inputmethod.latin.settings.SettingsValuesForSuggestion;
 import org.dslul.openboard.inputmethod.latin.settings.SpacingAndPunctuations;
-import org.dslul.openboard.inputmethod.latin.DictionaryFactory;
-import org.dslul.openboard.inputmethod.latin.SingleDictionaryFacilitator;
-import org.dslul.openboard.inputmethod.latin.settings.Settings;
-import org.dslul.openboard.inputmethod.latin.utils.DictionaryInfoUtils;
-import org.dslul.openboard.inputmethod.latin.utils.SuggestionResults;
 import org.dslul.openboard.inputmethod.latin.suggestions.SuggestionStripViewAccessor;
 import org.dslul.openboard.inputmethod.latin.utils.AsyncResultHolder;
 import org.dslul.openboard.inputmethod.latin.utils.InputTypeUtils;
@@ -64,7 +59,6 @@ import org.dslul.openboard.inputmethod.latin.utils.RecapitalizeStatus;
 import org.dslul.openboard.inputmethod.latin.utils.StatsUtils;
 import org.dslul.openboard.inputmethod.latin.utils.TextRange;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.TreeSet;
@@ -77,9 +71,6 @@ import javax.annotation.Nonnull;
  */
 public final class InputLogic {
     private static final String TAG = InputLogic.class.getSimpleName();
-
-    public static final char INLINE_EMOJI_SEARCH_MARKER = ':';
-    private SingleDictionaryFacilitator mEmojiDictionaryFacilitator;
 
     // TODO : Remove this member when we can.
     final LatinIME mLatinIME;
@@ -177,7 +168,6 @@ public final class InputLogic {
             mConnection.requestCursorUpdates(true /* enableMonitor */,
                     true /* requestImmediateCallback */);
         }
-        updateEmojiDictionary(mDictionaryFacilitator.getLocale());
     }
 
     /**
@@ -218,7 +208,6 @@ public final class InputLogic {
         }
         resetComposingState(true /* alsoResetLastComposedWord */);
         mInputLogicHandler.reset();
-        closeEmojiDictionary();
     }
 
     // Normally this class just gets out of scope after the process ends, but in unit tests, we
@@ -284,9 +273,6 @@ public final class InputLogic {
     public InputTransaction onPickSuggestionManually(final SettingsValues settingsValues,
             final SuggestedWordInfo suggestionInfo, final int keyboardShiftState,
             final int currentKeyboardScriptId, final LatinIME.UIHandler handler) {
-        if (suggestionInfo.isEmoji() || getInlineEmojiSearchString() != null) {
-            deleteTextReplacedByEmoji();
-        }
         final SuggestedWords suggestedWords = mSuggestedWords;
         final String suggestion = suggestionInfo.mWord;
         // If this is a punctuation picked from the suggestion strip, pass it to onCodeInput
@@ -2285,10 +2271,6 @@ public final class InputLogic {
     public void getSuggestedWords(final SettingsValues settingsValues,
             final Keyboard keyboard, final int keyboardShiftMode, final int inputStyle,
             final int sequenceNumber, final OnGetSuggestedWordsCallback callback) {
-        if (getInlineEmojiSearchString() != null) {
-            searchForEmojiInline(sequenceNumber, callback);
-            return;
-        }
         mWordComposer.adviseCapitalizedModeBeforeFetchingSuggestions(
                 getActualCapsMode(settingsValues, keyboardShiftMode));
         mSuggest.getSuggestedWords(mWordComposer,
@@ -2394,114 +2376,5 @@ public final class InputLogic {
     // never need to know this.
     public int getComposingLength() {
         return mWordComposer.size();
-    }
-
-    private void searchForEmojiInline(int sequenceNumber, OnGetSuggestedWordsCallback callback) {
-        final String input = getInlineEmojiSearchString();
-        if (StringUtils.isEmpty(input)) {
-            callback.onGetSuggestedWords(SuggestedWords.getEmptyInstance());
-            return;
-        }
-
-        final SuggestionResults suggestions = mEmojiDictionaryFacilitator.getSuggestions(
-                org.dslul.openboard.inputmethod.latin.common.EmojiKt.splitOnWhitespace(input));
-        if (suggestions.isEmpty()) {
-            callback.onGetSuggestedWords(SuggestedWords.getEmptyInstance());
-            return;
-        }
-
-        final SuggestedWordInfo typedWordInfo = new SuggestedWordInfo(input, "", SuggestedWordInfo.MAX_SCORE,
-                SuggestedWordInfo.KIND_TYPED, Dictionary.DICTIONARY_USER_TYPED,
-                SuggestedWordInfo.NOT_AN_INDEX, SuggestedWordInfo.NOT_A_CONFIDENCE);
-        final ArrayList<SuggestedWordInfo> suggestedWordInfos = new ArrayList<>(suggestions.size() + 1);
-        suggestedWordInfos.add(typedWordInfo);
-        for (final SuggestedWordInfo suggestion : suggestions) {
-            if (suggestion.isEmoji()) {
-                suggestedWordInfos.add(suggestion);
-            }
-        }
-        callback.onGetSuggestedWords(new SuggestedWords(suggestedWordInfos, suggestions.mRawSuggestions, typedWordInfo,
-                false /* typedWordValid */, false /* willAutoCorrect */,
-                false /* isObsoleteSuggestions */, SuggestedWords.INPUT_STYLE_TYPING, sequenceNumber));
-    }
-
-    private void deleteTextReplacedByEmoji() {
-        mConnection.finishComposingText();
-        final String inlineEmojiSearchString = getInlineEmojiSearchString();
-        if (inlineEmojiSearchString != null) {
-            mConnection.deleteTextBeforeCursor(inlineEmojiSearchString.length() + 1);
-        }
-    }
-
-    public String getInlineEmojiSearchString() {
-        if (mEmojiDictionaryFacilitator == null) {
-            return null;
-        }
-
-        final CharSequence textBeforeCursor = mConnection.getTextBeforeCursor(50, 0);
-        return getInlineEmojiSearchString(textBeforeCursor, Settings.getInstance().getCurrent());
-    }
-
-    public static String getInlineEmojiSearchString(final CharSequence textBeforeCursor) {
-        return getInlineEmojiSearchString(textBeforeCursor, null);
-    }
-
-    public static String getInlineEmojiSearchString(final CharSequence textBeforeCursor, final SettingsValues settingsValues) {
-        if (textBeforeCursor == null) {
-            return null;
-        }
-
-        final String text = textBeforeCursor.toString();
-        final int markerIndex = text.lastIndexOf(INLINE_EMOJI_SEARCH_MARKER);
-        if (markerIndex < 0 || text.length() < markerIndex + 2) {
-            return null;
-        }
-
-        if (markerIndex > 0 && !isValidInlineEmojiSearchPreviousChar(Character.codePointBefore(text, markerIndex),
-                settingsValues)) {
-            return null;
-        }
-
-        if (Character.isWhitespace(text.codePointAt(markerIndex + 1))) {
-            return null;
-        }
-
-        if (text.indexOf('\n', markerIndex + 2) >= 0) {
-            return null;
-        }
-
-        return text.substring(markerIndex + 1);
-    }
-
-    private static boolean isValidInlineEmojiSearchPreviousChar(final int charBeforeBeforeCursor, final SettingsValues settingsValues) {
-        if (Character.isDigit(charBeforeBeforeCursor) || Character.isLetter(charBeforeBeforeCursor)) {
-            return false;
-        }
-        return settingsValues == null || !settingsValues.isWordCodePoint(charBeforeBeforeCursor);
-    }
-
-    public void updateEmojiDictionary(final Locale locale) {
-        if (Settings.getInstance().getCurrent().mInlineEmojiSearch && Settings.getInstance().getCurrent().needsToLookupSuggestions()
-                && !mLatinIME.isEmojiSearch()) {
-            if (mEmojiDictionaryFacilitator == null || !mEmojiDictionaryFacilitator.isForLocale(locale)) {
-                closeEmojiDictionary();
-                final File dictFile = DictionaryInfoUtils.getCachedDictForLocaleAndType(locale, Dictionary.TYPE_EMOJI, mLatinIME);
-                final Dictionary dictionary = dictFile != null ? DictionaryFactory.getDictionary(dictFile, locale) : null;
-                final org.dslul.openboard.inputmethod.keyboard.ProximityInfo proximityInfo =
-                        KeyboardSwitcher.getInstance().getKeyboard() != null
-                                ? KeyboardSwitcher.getInstance().getKeyboard().getProximityInfo()
-                                : null;
-                mEmojiDictionaryFacilitator = dictionary != null ? new SingleDictionaryFacilitator(dictionary, proximityInfo) : null;
-            }
-        } else {
-            closeEmojiDictionary();
-        }
-    }
-
-    private void closeEmojiDictionary() {
-        if (mEmojiDictionaryFacilitator != null) {
-            mEmojiDictionaryFacilitator.closeDictionaries();
-            mEmojiDictionaryFacilitator = null;
-        }
     }
 }

@@ -413,8 +413,6 @@ disposition rather than other common dispositions for Latin languages. [CHAR LIM
     <string name="prefs_enable_emoji_alt_physical_key_summary">Physical Alt key shows the emoji palette</string>
     <string name="emoji_search_title">Search emoji</string>
     <string name="search_field_placeholder">Search</string>
-    <string name="inline_emoji_search">Inline emoji search</string>
-    <string name="inline_emoji_search_summary">Suggest only emojis when a word is preceded by a colon</string>
     <string name="spoken_description_emoji_search">Search emoji</string>
     <!-- Title of the button to revert to the default value of the device in the settings dialog [CHAR LIMIT=15] -->
     <string name="button_default">Default</string>
