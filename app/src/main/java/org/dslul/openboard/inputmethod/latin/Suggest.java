@@ -23,6 +23,7 @@ import org.dslul.openboard.inputmethod.keyboard.Keyboard;
 import org.dslul.openboard.inputmethod.keyboard.KeyboardId;
 import org.dslul.openboard.inputmethod.latin.SuggestedWords.SuggestedWordInfo;
 import org.dslul.openboard.inputmethod.latin.common.Constants;
+import org.dslul.openboard.inputmethod.latin.common.EmojiKt;
 import org.dslul.openboard.inputmethod.latin.common.StringUtils;
 import org.dslul.openboard.inputmethod.latin.define.DebugFlags;
 import org.dslul.openboard.inputmethod.latin.settings.SettingsValuesForSuggestion;
@@ -171,7 +172,7 @@ public final class Suggest {
                 getTransformedSuggestedWordInfoList(wordComposer, suggestionResults,
                         trailingSingleQuotesCount, locale);
         for (int i = suggestionsContainer.size() - 1; i >= 0; --i) {
-            if (org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(suggestionsContainer.get(i).mWord)) {
+            if (EmojiKt.containsEmoji(suggestionsContainer.get(i).mWord)) {
                 suggestionsContainer.remove(i);
             }
         }
@@ -214,7 +215,7 @@ public final class Suggest {
                 || resultsArePredictions
                 // If we don't have suggestion results, we can't evaluate the first suggestion
                 // for auto-correction
-                || suggestionResults.isEmpty()
+                || suggestionsContainer.isEmpty()
                 // If the word has digits, we never auto-correct because it's likely the word
                 // was type with a lot of care
                 || wordComposer.hasDigits()
@@ -238,11 +239,13 @@ public final class Suggest {
                 // If the first suggestion is a shortcut we never auto-correct to it, regardless
                 // of how strong it is (whitelist entries are not KIND_SHORTCUT but KIND_WHITELIST).
                 // TODO: we may want to have shortcut-only entries auto-correct in the future.
-                || suggestionResults.first().isKindOf(SuggestedWordInfo.KIND_SHORTCUT)) {
+                || suggestionsContainer.get(0).isKindOf(SuggestedWordInfo.KIND_SHORTCUT)) {
             hasAutoCorrection = false;
         } else {
-            final SuggestedWordInfo firstSuggestion = suggestionResults.first();
-            if (suggestionResults.mFirstSuggestionExceedsConfidenceThreshold
+            final SuggestedWordInfo firstSuggestion = suggestionsContainer.get(0);
+            if (!suggestionResults.isEmpty()
+                    && suggestionResults.first().mWord.equals(firstSuggestion.mWord)
+                    && suggestionResults.mFirstSuggestionExceedsConfidenceThreshold
                     && firstOcurrenceOfTypedWordInSuggestions != 0) {
                 hasAutoCorrection = true;
             } else if (!AutoCorrectionUtils.suggestionExceedsThreshold(
@@ -337,7 +340,7 @@ public final class Suggest {
         // TODO: Find a more robust way to detect distracters.
         for (int i = suggestionsContainer.size() - 1; i >= 0; --i) {
             if (suggestionsContainer.get(i).mScore < SUPPRESS_SUGGEST_THRESHOLD
-                    || org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(suggestionsContainer.get(i).mWord)) {
+                    || EmojiKt.containsEmoji(suggestionsContainer.get(i).mWord)) {
                 suggestionsContainer.remove(i);
             }
         }

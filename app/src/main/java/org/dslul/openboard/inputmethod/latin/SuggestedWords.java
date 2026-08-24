@@ -20,6 +20,7 @@ import android.text.TextUtils;
 import android.view.inputmethod.CompletionInfo;
 
 import org.dslul.openboard.inputmethod.annotations.UsedForTesting;
+import org.dslul.openboard.inputmethod.latin.common.EmojiKt;
 import org.dslul.openboard.inputmethod.latin.common.StringUtils;
 import org.dslul.openboard.inputmethod.latin.define.DebugFlags;
 
@@ -368,7 +369,7 @@ public class SuggestedWords {
 
         public boolean isEmoji() {
             if (mIsEmoji == null) {
-                mIsEmoji = org.dslul.openboard.inputmethod.latin.common.EmojiKt.containsEmoji(mWord);
+                mIsEmoji = EmojiKt.isEmoji(mWord);
             }
             return mIsEmoji;
         }
