@@ -58,8 +58,7 @@ public final class KeyboardCodesSet {
         "key_start_onehanded",
         "key_stop_onehanded",
         "key_switch_onehanded",
-        "key_emoji_search",
-        "key_inline_emoji_search_done"
+        "key_emoji_search"
     };
 
     private static final int[] DEFAULT = {
@@ -85,8 +84,7 @@ public final class KeyboardCodesSet {
         Constants.CODE_START_ONE_HANDED_MODE,
         Constants.CODE_STOP_ONE_HANDED_MODE,
         Constants.CODE_SWITCH_ONE_HANDED_MODE,
-        Constants.CODE_EMOJI_SEARCH,
-        Constants.CODE_INLINE_EMOJI_SEARCH_DONE
+        Constants.CODE_EMOJI_SEARCH
     };
 
     static {

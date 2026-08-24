@@ -399,27 +399,6 @@ public final class RichInputConnection implements PrivateCommandPerformer {
         return Character.codePointBefore(text, length);
     }
 
-    public int getCharBeforeBeforeCursor() {
-        final CharSequence text;
-        final int cursorIndex;
-        if (mComposingText.length() > 0) {
-            text = mComposingText;
-            cursorIndex = mComposingText.length();
-        } else {
-            text = mCommittedTextBeforeComposingText;
-            cursorIndex = mCommittedTextBeforeComposingText.length();
-        }
-        if (cursorIndex < 1) return Constants.NOT_A_CODE;
-        final int codePointBefore = Character.codePointBefore(text, cursorIndex);
-        final int prevIndex = cursorIndex - Character.charCount(codePointBefore);
-        if (prevIndex > 0) {
-            return Character.codePointBefore(text, prevIndex);
-        } else if (text == mComposingText && mCommittedTextBeforeComposingText.length() > 0) {
-            return Character.codePointBefore(mCommittedTextBeforeComposingText, mCommittedTextBeforeComposingText.length());
-        }
-        return Constants.NOT_A_CODE;
-    }
-
     public CharSequence getTextBeforeCursor(final int n, final int flags) {
         final int cachedLength =
                 mCommittedTextBeforeComposingText.length() + mComposingText.length();

@@ -2473,12 +2473,6 @@ public final class InputLogic {
         return text.substring(markerIndex + 1);
     }
 
-    public static boolean isStartOfInlineEmojiSearch(final int codePoint, final int codePointBeforeCursor,
-            final int charBeforeBeforeCursor, final SettingsValues settingsValues) {
-        return codePointBeforeCursor == INLINE_EMOJI_SEARCH_MARKER && codePoint != INLINE_EMOJI_SEARCH_MARKER
-                && !Character.isWhitespace(codePoint) && isValidInlineEmojiSearchPreviousChar(charBeforeBeforeCursor, settingsValues);
-    }
-
     private static boolean isValidInlineEmojiSearchPreviousChar(final int charBeforeBeforeCursor, final SettingsValues settingsValues) {
         if (Character.isDigit(charBeforeBeforeCursor) || Character.isLetter(charBeforeBeforeCursor)) {
             return false;
